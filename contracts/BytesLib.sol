@@ -8,6 +8,8 @@
  */
 pragma solidity >=0.7.3 <0.9.0;
 
+import "hardhat/console.sol";
+
 // This library comes from https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
 
 library BytesLib {
@@ -584,6 +586,18 @@ library BytesLib {
     function convertByteToString(bytes20 symbol) internal pure returns(string memory){
         string memory result = string(abi.encodePacked(symbol));
         return result;
+    }
+
+    function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 
     function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {

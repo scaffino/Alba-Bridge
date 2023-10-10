@@ -100,6 +100,7 @@
 
 pragma solidity ^0.8.9;
 
+import "hardhat/console.sol";
 import "./BytesLib.sol";
 
 library BTC {
@@ -148,14 +149,14 @@ library BTC {
     // scan the full transaction bytes and return the first two output
     // values (in satoshis) and addresses (in binary)
     function getFirstTwoOutputs(bytes memory txBytes)
-             internal pure returns (uint, bytes20, uint, bytes20)
+             internal pure returns (uint, bytes32, uint, bytes32)
     {
         uint pos;
-        uint[] memory input_script_lens = new uint[](2);
+        uint[] memory input_script_lens = new uint[](2); // (n) is the size of the array
         uint[] memory output_script_lens = new uint[](2);
         uint[] memory script_starts = new uint[](2);
         uint[] memory output_values = new uint[](2);
-        bytes20[] memory output_addresses = new bytes20[](2);
+        bytes32[] memory output_addresses = new bytes32[](2);
 
         pos = 4;  // skip version
 
@@ -164,13 +165,42 @@ library BTC {
         (output_values, script_starts, output_script_lens, pos) = scanOutputs(txBytes, pos, 2);
 
         for (uint i = 0; i < 2; i++) {
-            bytes20 pkhash;
-            bytes32 aux;
-            (pkhash, aux) = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
+            bytes32 pkhash;
+            pkhash = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
             output_addresses[i] = pkhash;
         }
 
         return (output_values[0], output_addresses[0], output_values[1], output_addresses[1]);
+    }
+
+    // scan the full transaction bytes and return the first two output
+    // values (in satoshis) and addresses (in binary)
+    function getFirstThreeOutputs(bytes memory txBytes)
+             internal pure returns (uint, bytes32, uint, bytes32, uint, bytes32)
+    {
+        uint pos;
+        uint[] memory input_script_lens = new uint[](2); // (n) is the size of the array
+        uint[] memory output_script_lens = new uint[](3);
+        uint[] memory script_starts = new uint[](3);
+        uint[] memory output_values = new uint[](3);
+        bytes32[] memory output_addresses = new bytes32[](3);
+
+        pos = 4;  // skip version
+
+        (input_script_lens, pos) = scanInputs(txBytes, pos, 0);
+
+        (output_values, script_starts, output_script_lens, pos) = scanOutputs(txBytes, pos, 0);
+
+        //uint temp = BytesLib.bytesToUint(txBytes);
+        //console.log("Test: ", temp);
+        
+        for (uint i = 0; i < 3; i++) {
+            bytes32 pkhash;
+            pkhash = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
+            output_addresses[i] = pkhash;
+        }
+
+        return (output_values[0], output_addresses[0], output_values[1], output_addresses[1], output_values[2], output_addresses[2]);
     }
 
     // Check whether `btcAddress` is in the transaction outputs *and*
@@ -186,9 +216,8 @@ library BTC {
 
         // look at each output and check whether it at least value to btcAddress
         for (uint i = 0; i < output_values.length; i++) {
-            bytes20 pkhash;
-            bytes32 aux;
-            (pkhash, aux) = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
+            bytes32 pkhash;
+            pkhash = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
             if (pkhash == btcAddress && output_values[i] >= value) {
                 return true;
             }
@@ -276,7 +305,7 @@ library BTC {
 
     function sliceBytes32(bytes memory data, uint start) internal pure returns (bytes32) {
         uint256 slice = 0;
-        for (uint256 i = 0; i < 20; i++) {
+        for (uint256 i = 0; i < 32; i++) {
             slice += uint256(uint8(data[i + start])) << (8 * (31 - i));
         }
         return bytes32(slice);
@@ -314,16 +343,16 @@ library BTC {
     // pay-to-pubkey-hash (P2PKH) or pay-to-script-hash (P2SH) outputs.
     // Returns the pubkeyhash/ scripthash, or zero if unknown output.
     function parseOutputScript(bytes memory txBytes, uint pos, uint script_len)
-             internal pure returns (bytes20, bytes32)
+             internal pure returns (bytes32)
     {
         if (isP2PKH(txBytes, pos, script_len)) {
-            return (sliceBytes20(txBytes, pos + 3), bytes32(0));
+            return (sliceBytes20(txBytes, pos + 3));
         } else if (isP2SH(txBytes, pos, script_len)) {
-            return (sliceBytes20(txBytes, pos + 2), bytes32(0));
+            return (sliceBytes20(txBytes, pos + 2));
         } else if (isOPRETURN(txBytes, pos, script_len)) {
-            return (bytes20(0), sliceBytes20(txBytes, pos + 1));
+            return (sliceBytes32(txBytes, pos + 2));
         } else {
-            return (bytes20(0), bytes32(0));
+            return bytes32(0);
         }
     }
 }

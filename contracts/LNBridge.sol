@@ -1,4 +1,5 @@
 pragma solidity ^0.8.9;
+pragma experimental ABIEncoderV2;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
@@ -34,20 +35,26 @@ contract LNBridge {
         return (input_script_lens);
     }
 */
-    function getTheTwoOutputs(bytes memory _txBytes) external returns(uint, bytes20, uint, bytes20) {
+    function getTheThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, uint, bytes32) {
         uint one;
-        bytes20 two;
+        bytes32 two;
         uint three;
-        bytes20 four;
-        (one, two, three, four) = BTC.getFirstTwoOutputs(_txBytes);
+        bytes32 four;
+        uint five;
+        bytes32 six;
+        //(one, two, three, four) = BTC.getFirstTwoOutputs(_txBytes);
+        (one, two, three, four, five, six) = BTC.getFirstThreeOutputs(_txBytes);
         console.log("Check one:", one);
         //console.log("Check two:", BytesLib.convertByteToString(two));
-        console.log("Check two:", BytesLib.toHexString(two));
+        console.log("Check two:", BytesLib.toHexString(uint(two), 32));
         console.log("Check three:", three);
-        console.log("Check four:", BytesLib.toHexString(four));
+        console.log("Check four:", BytesLib.toHexString(uint(four), 32));
+        console.log("Check five:", five);
+        console.log("Check six:", BytesLib.toHexString(uint(six), 32));
+        //console.log("Check three:", seven);
+        //console.log("Check four:", BytesLib.toHexString(eight));
         return (one, two, three, four);
     }
-
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timestamp) external {
         fundingTxId = _fundingTxId;

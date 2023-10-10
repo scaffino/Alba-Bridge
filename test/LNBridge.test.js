@@ -21,8 +21,8 @@ describe("LNBridge", function() {
          const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
         })
 
-        it("Get the two outputs", async function () {
-            let tx = await LNBridge.getTheTwoOutputs(testdata.unlockedCTP);
+        it("Get the three outputs", async function () {
+            let tx = await LNBridge.getTheThreeOutputs(testdata.unlockedCTP);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
            })
 
