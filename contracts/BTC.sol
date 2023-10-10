@@ -173,7 +173,7 @@ library BTC {
         return (output_values[0], output_addresses[0], output_values[1], output_addresses[1]);
     }
 
-    // scan the full transaction bytes and return the first two output
+    // scan the full transaction bytes and return the first three output
     // values (in satoshis) and addresses (in binary)
     function getFirstThreeOutputs(bytes memory txBytes)
              internal pure returns (uint, bytes32, uint, bytes32, uint, bytes32)
@@ -190,9 +190,6 @@ library BTC {
         (input_script_lens, pos) = scanInputs(txBytes, pos, 0);
 
         (output_values, script_starts, output_script_lens, pos) = scanOutputs(txBytes, pos, 0);
-
-        //uint temp = BytesLib.bytesToUint(txBytes);
-        //console.log("Test: ", temp);
         
         for (uint i = 0; i < 3; i++) {
             bytes32 pkhash;

@@ -25,6 +25,7 @@ contract LNBridge {
     function verifySignature(bytes memory pk, bytes32 digest, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {
         return CheckBitcoinSigs.checkSig(pk, digest, v, r, s);
     }
+
 /*
     function getInputs(bytes memory _txBytes) external returns(uint[] memory) {
         uint pos;
@@ -35,25 +36,24 @@ contract LNBridge {
         return (input_script_lens);
     }
 */
-    function getTheThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, uint, bytes32) {
-        uint one;
-        bytes32 two;
-        uint three;
-        bytes32 four;
-        uint five;
-        bytes32 six;
-        //(one, two, three, four) = BTC.getFirstTwoOutputs(_txBytes);
-        (one, two, three, four, five, six) = BTC.getFirstThreeOutputs(_txBytes);
-        console.log("Check one:", one);
-        //console.log("Check two:", BytesLib.convertByteToString(two));
-        console.log("Check two:", BytesLib.toHexString(uint(two), 32));
-        console.log("Check three:", three);
-        console.log("Check four:", BytesLib.toHexString(uint(four), 32));
-        console.log("Check five:", five);
-        console.log("Check six:", BytesLib.toHexString(uint(six), 32));
-        //console.log("Check three:", seven);
-        //console.log("Check four:", BytesLib.toHexString(eight));
-        return (one, two, three, four);
+
+    function readThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, uint, bytes32, uint, bytes32) {
+        uint value_output_1;
+        bytes32 script_data_1;
+        uint value_output_2;
+        bytes32 script_data_2;
+        uint value_output_3;
+        bytes32 script_data_3;
+        (value_output_1, script_data_1, value_output_2, script_data_2, value_output_3, script_data_3) = BTC.getFirstThreeOutputs(_txBytes);
+        
+        console.log("Check value_output_1:", value_output_1);
+        console.log("Check script_data_1:", BytesLib.toHexString(uint(script_data_1), 32));
+        console.log("Check value_output_2:", value_output_2);
+        console.log("Check script_data_2:", BytesLib.toHexString(uint(script_data_2), 32));
+        console.log("Check value_output_3:", value_output_3);
+        console.log("Check script_data_3:", BytesLib.toHexString(uint(script_data_3), 32));
+
+        return (value_output_1, script_data_1, value_output_2, script_data_2, value_output_3, script_data_3);
     }
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timestamp) external {
