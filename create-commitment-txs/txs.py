@@ -9,7 +9,7 @@ init.init_network()
 
 ### Transactions for lightning
 
-def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: int, val_r: int, fee: int, l: bool, timelock) -> Transaction:
+def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: int, val_r: int, fee: int, l: bool, timelock, locked: bool) -> Transaction:
     if l:
         tx_out0 = TxOutput(int(val_l-fee/2), scripts.get_script_lightning_locked(id_l, id_r, hashed_secret, timelock)) # output to l
         tx_out1 = TxOutput(int(val_r-fee/2), id_r.p2pkh) # output to r
@@ -17,7 +17,10 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
         tx_out0 = TxOutput(int(val_r-fee/2), scripts.get_script_lightning_locked(id_r, id_l, hashed_secret, timelock)) # output to r
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
-    tx = Transaction([tx_in], [tx_out0, tx_out1])
+    if locked:
+        tx = Transaction([tx_in], [tx_out0, tx_out1], "1699789104")
+    else:
+        tx = Transaction([tx_in], [tx_out0, tx_out1])
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 
@@ -28,22 +31,28 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
 
     return tx
 
-def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: int, val_r: int, fee: int, l: bool, timelock) -> Transaction:
+def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val, val_l: int, val_r: int, fee: int, l: bool, timelock, locked: bool) -> Transaction:
     if l: #ct_prover, has id and secret_V in opreturn output
         tx_out0 = TxOutput(int(val_l-fee/2), scripts.get_script_lightning_locked(id_l, id_r, hashed_secret, timelock)) # output to l
         tx_out1 = TxOutput(int(val_r-fee/2), id_r.p2pkh) # output to r
-        op_return_script_id =  Script(['OP_RETURN', 'OP_1'])
-        op_return_script_revSec =  Script(['OP_RETURN', hashed_secret])
+        # op_return_script_id =  Script(['OP_RETURN', 'OP_1']) #omit id for checking valid latest state
+        op_return_script_revSec =  Script(['OP_RETURN', opreturn_val])
         tx_out2 = TxOutput(0, op_return_script_revSec)
-        tx_out3 = TxOutput(0, op_return_script_id) 
+        #tx_out3 = TxOutput(0, op_return_script_id) 
 
-        tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2, tx_out3])
+        if locked:
+            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "1699789104")
+        else:
+            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2])
 
     else: #ct_verifier, locked with secret_V
         tx_out0 = TxOutput(int(val_r-fee/2), scripts.get_script_lightning_locked(id_r, id_l, hashed_secret, timelock)) # output to r
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
-        tx = Transaction([tx_in], [tx_out0, tx_out1])
+        if locked:
+            tx = Transaction([tx_in], [tx_out0, tx_out1], "1699789104")
+        else:
+            tx = Transaction([tx_in], [tx_out0, tx_out1])
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 

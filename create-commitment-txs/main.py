@@ -16,6 +16,10 @@ init.init_network()
 id_P = Id('d44348ff037a7f65bcf9b7c86181828f5e05dbfe6cf2efe9af6362c8d53a00b0') #address is mhdTzofrDHXF18US18Y6ZfV5JhqCxa13yh
 id_V = Id('b45349ff037a7f65bcf9b7c86181828f5e05dbfe6cf2efe9af6362c8d53a00b0') #address is my6e3Kf7vUEW9dvdhS9jrMHUjsL1k95csk 
 
+# new tx to P: eebefbe57fc27188acf24b9c2b03f69016a86e66ba691c15cf2a802b9eb4fad8
+# new tx to V: 14032db0c21c079cb6e7cdba52fc0fd21d72bdc651dfc4adb3bcaca1d42d006c
+# new funding tx: f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674
+
 #print(verifier.addr)
 #bob =   Id('d32048ff037a0f15bcf977c86181828f5e05dbfe6cf2efe9af6362c8d53a00b1')
 #faucet = P2pkhAddress('mohjSavDdQYHRYXcS3uS6ttaHP8amyvX78')
@@ -26,13 +30,13 @@ id_V = Id('b45349ff037a7f65bcf9b7c86181828f5e05dbfe6cf2efe9af6362c8d53a00b0') #a
 # # # # # # # #
 
 #inputs
-tx_in_P = TxInput('601ee0f8fc9f953044440a81c9bdf688db859ecbf12d4ff64864a1df7d287085', 0) #8210
-tx_in_V = TxInput('ec139f9c964158ef3eeb6c135f5a79a4c5a47efb3dd9104375729d0e2c74ba56', 1) #9553
+tx_in_P = TxInput('eebefbe57fc27188acf24b9c2b03f69016a86e66ba691c15cf2a802b9eb4fad8', 1) 
+tx_in_V = TxInput('14032db0c21c079cb6e7cdba52fc0fd21d72bdc651dfc4adb3bcaca1d42d006c', 0) 
 #outputs
-tx_out_multisig = TxOutput(8210, scripts.get_script_ft_output(id_P, id_V)) 
-tx_out_payback = TxOutput(9100, id_P.p2pkh)
+tx_out_multisig = TxOutput(18295, scripts.get_script_ft_output(id_P, id_V)) 
+#tx_out_payback = TxOutput(9100, id_P.p2pkh)
 #construct tx
-tx = Transaction([tx_in_P, tx_in_V], [tx_out_multisig, tx_out_payback])
+tx = Transaction([tx_in_P, tx_in_V], [tx_out_multisig])
 #compute signatures
 sig_P = id_P.sk.sign_input(tx, 0 , id_P.p2pkh) 
 sig_V = id_V.sk.sign_input(tx, 1 , id_V.p2pkh) 
@@ -76,16 +80,25 @@ print(tx.serialize())
 # Create unlocked commitment transaction P 
 # # # # # # # #
 
-secret_rev = gen_secret() #52
+secret_rev_P = hash256("Hey! This is P, and this is my revocation secret".encode("utf-8").hex()) 
+secret_rev_V = hash256("Hey! This is V, and this is my revocation secret".encode("utf-8").hex()) 
 
 # P is owner and V is punisher. Secret_rev is from P (V knows it)
-ct_P = txs.get_LNBridge_ct(TxInput('9976352b89ece6bbe86484a22cc1fb8bab696a1f64d9f77480cb9341296202fc', 0), id_P, id_V, hash256(secret_rev), 4105, 4105, 420, l=True, timelock=0x2)
+ct_P_locked = txs.get_LNBridge_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, hash256(secret_rev_P), hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=True)
 
-ct_V = txs.get_LNBridge_ct(TxInput('9976352b89ece6bbe86484a22cc1fb8bab696a1f64d9f77480cb9341296202fc', 0), id_P, id_V, hash256(secret_rev), 4105, 4105, 420, l=False, timelock=0x2)
+ct_V_locked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_V, id_P, hash256(secret_rev_V), 9000, 9000, 420, l=False, timelock=0x2, locked=True)
 
-print(ct_P.serialize())
+ct_P_unlocked = txs.get_LNBridge_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, hash256(secret_rev_P), hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=False)
+
+ct_V_unlocked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_V, id_P, hash256(secret_rev_V), 9000, 9000, 420, l=False, timelock=0x2, locked=False)
+
+print("Comm TX P locked: ", ct_P_locked.serialize())
 print("")
-print(ct_V.serialize())
+print("Comm TX V locked: ", ct_V_locked.serialize())
+print("")
+print("Comm TX P unlocked: ", ct_P_unlocked.serialize()) # 6ff3e49f2a5394e3bb4c43d7d409e534da0dcc53e72c3bab981ff9e4422aa073
+print("")
+print("Comm TX V unlocked: ", ct_V_unlocked.serialize())
 
 # # # # # # # #
 # for locked txs, remove the final 00000000 and replace it with 06665666 
