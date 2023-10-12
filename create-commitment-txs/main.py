@@ -20,9 +20,6 @@ id_V = Id('b45349ff037a7f65bcf9b7c86181828f5e05dbfe6cf2efe9af6362c8d53a00b0') #a
 # new tx to V: 14032db0c21c079cb6e7cdba52fc0fd21d72bdc651dfc4adb3bcaca1d42d006c
 # new funding tx: f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674
 
-#print(verifier.addr)
-#bob =   Id('d32048ff037a0f15bcf977c86181828f5e05dbfe6cf2efe9af6362c8d53a00b1')
-#faucet = P2pkhAddress('mohjSavDdQYHRYXcS3uS6ttaHP8amyvX78')
 
 """
 # # # # # # # #
@@ -100,13 +97,8 @@ print("Comm TX P unlocked: ", ct_P_unlocked.serialize()) # 6ff3e49f2a5394e3bb4c4
 print("")
 print("Comm TX V unlocked: ", ct_V_unlocked.serialize())
 
-# # # # # # # #
-# for locked txs, remove the final 00000000 and replace it with 06665666 
-# # # # # # # #
-
-######### DATA #########
-
-# Hash Revocation Secret: a99843c5b0e2290f3bac80d8845f718095c6af84092f449ccf10769647095bca
+######### Useful Websites #########
 
 # Breakdown Bitcoin Raw Transaction: https://rsbondi.github.io/btc-adventure/
-# bitcoin transactino decoder https://live.blockcypher.com/btc/decodetx/
+# Bitcoin transactino decoder: https://live.blockcypher.com/btc/decodetx/
+# Blockstream testnet explorer: https://blockstream.info/testnet/

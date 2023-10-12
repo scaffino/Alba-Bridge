@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTC.sol": {
-      "lastModificationDate": 1696951046838,
-      "contentHash": "2bdecdc560c26734d4d641039aca8ff0",
+      "lastModificationDate": 1697117124632,
+      "contentHash": "a4d87b04c9c82e908279c2fa6dfce773",
       "sourceName": "contracts/BTC.sol",
       "solcConfig": {
         "version": "0.8.19",
