@@ -337,26 +337,25 @@ library BTC {
     }
 
     function isLightningHTLC(bytes memory txBytes, uint pos, uint script_len) internal pure returns (bool) {
-        return (script_len == 34)           // 32-byte the hash of the revocation secret + 2 bytes of script
+        return (script_len == 114)          // 32-byte the hash of the revocation secret + 2 bytes of script
             && (txBytes[pos + 0] == 0x76)   // OP_DUP
             && (txBytes[pos + 1] == 0x21)   // bytes to push (33)
-            && (txBytes[pos + 34] == 0xac)  // OP_CHECKSIG
-            && (txBytes[pos + 35] == 0x63)  // OP_IF
-            && (txBytes[pos + 36] == 0x75)  // OP_DROP
-            && (txBytes[pos + 37] == 0xaa)  // OP_HASH256
-            && (txBytes[pos + 38] == 0x20)  // bytes to push (32)
-            && (txBytes[pos + 50] == 0x88)  // OP_EQUALVERIFY
-            && (txBytes[pos + 51] == 0x67)  // OP_ELSE
-            && (txBytes[pos + 52] == 0x21)  // bytes to push (33)
-            && (txBytes[pos + 51] == 0xad)  // OP_CHECKSIGVERIFY
-            && (txBytes[pos + 51] == 0x52)  // OP_2
-            && (txBytes[pos + 51] == 0xb2)  // OP_CHECKSEQUENCEVERIFY
-            && (txBytes[pos + 36] == 0x75)  // OP_DROP
-            && (txBytes[pos + 36] == 0x51); // OP_1
- 
-    }
+            && (txBytes[pos + 35] == 0xac)  // OP_CHECKSIG
+            && (txBytes[pos + 36] == 0x63)  // OP_IF
+            && (txBytes[pos + 37] == 0x75)  // OP_DROP
+            && (txBytes[pos + 38] == 0xaa)  // OP_HASH256
+            && (txBytes[pos + 39] == 0x20)  // bytes to push (32)
+            && (txBytes[pos + 72] == 0x88)  // OP_EQUALVERIFY
+            && (txBytes[pos + 73] == 0x67)  // OP_ELSE
+            && (txBytes[pos + 74] == 0x21)  // bytes to push (33)
+            && (txBytes[pos + 108] == 0xad)  // OP_CHECKSIGVERIFY
+            && (txBytes[pos + 109] == 0x52)  // OP_2
+            && (txBytes[pos + 110] == 0xb2)  // OP_CHECKSEQUENCEVERIFY
+            && (txBytes[pos + 111] == 0x75)  // OP_DROP
+            && (txBytes[pos + 112] == 0x68)  // OP_ENDIF
+            && (txBytes[pos + 113] == 0x51); // OP_1
+    }    
     
-
     // Get the pubkeyhash / scripthash from an output script. Assumes
     // pay-to-pubkey-hash (P2PKH) or pay-to-script-hash (P2SH) outputs.
     // Returns the pubkeyhash/ scripthash, or zero if unknown output.
@@ -364,15 +363,19 @@ library BTC {
              internal pure returns (bytes32)
     {
         if (isP2PKH(txBytes, pos, script_len)) {
+            console.log("Parsed P2PKH output");
             return (sliceBytes20(txBytes, pos + 3));
         } else if (isP2SH(txBytes, pos, script_len)) {
+            console.log("Parsed P2SH output");
             return (sliceBytes20(txBytes, pos + 2));
         } else if (isOPRETURN(txBytes, pos, script_len)) {
+            console.log("Parsed OP_RETURN output");
+            return (sliceBytes32(txBytes, pos + 2));
+        } else if (isLightningHTLC(txBytes, pos, script_len)) {
+            console.log("Parsed LightningHTLC output");
             return (sliceBytes32(txBytes, pos + 2));
         } else {
             return bytes32(0);
         }
-
-        // TODO GIULIA: Add isLightningHTLC
     }
 }
