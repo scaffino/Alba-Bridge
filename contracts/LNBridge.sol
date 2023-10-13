@@ -21,39 +21,72 @@ contract LNBridge {
     uint public timestamp; //october 18th, 00.00
     uint public timestamp_dispute; //to be used
 
-        
-    function verifySignature(bytes memory pk, bytes32 digest, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {
-        return CheckBitcoinSigs.checkSig(pk, digest, v, r, s);
+    struct LightningHTLCData {
+        uint value;
+        bytes32 pk1;
+        bytes32 pk2;
+        bytes32 rev_secret;
     }
 
-/*
-    function getInputs(bytes memory _txBytes) external returns(uint[] memory) {
-        uint pos;
-        uint[] memory input_script_lens;
-        // pos = 4 skips the version number
-        (input_script_lens, pos) = BTC.scanInputs(_txBytes, 4, 0);
-        console.log("Check input_script_lens:", input_script_lens);
-        return (input_script_lens);
+    struct P2PKHData {
+        uint value;
+        bytes32 pkhash;
     }
-*/
 
-    function readThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, uint, bytes32, uint, bytes32) {
-        uint value_output_1;
-        bytes32 script_data_1;
-        uint value_output_2;
-        bytes32 script_data_2;
-        uint value_output_3;
-        bytes32 script_data_3;
-        (value_output_1, script_data_1, value_output_2, script_data_2, value_output_3, script_data_3) = BTC.getFirstThreeOutputs(_txBytes);
-        
-        console.log("Check value_output_1:", value_output_1);
-        console.log("Check script_data_1:", BytesLib.toHexString(uint(script_data_1), 32));
-        console.log("Check value_output_2:", value_output_2);
-        console.log("Check script_data_2:", BytesLib.toHexString(uint(script_data_2), 32));
-        console.log("Check value_output_3:", value_output_3);
-        console.log("Check script_data_3:", BytesLib.toHexString(uint(script_data_3), 32));
+    struct OpReturnData {
+        uint value;
+        bytes32 data;
+    }
 
-        return (value_output_1, script_data_1, value_output_2, script_data_2, value_output_3, script_data_3);
+    struct ExtractOutputAux {
+        uint pos; // skip version
+        uint[] input_script_lens; 
+        uint[] output_script_lens;
+        uint[] script_starts;
+        uint[] output_values;
+    }
+
+    LightningHTLCData public htlc;
+    OpReturnData public opreturn;
+    P2PKHData public p2pkh;
+    ExtractOutputAux public out_aux;
+
+    function readThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
+
+        out_aux.pos = 4;
+
+        (out_aux.input_script_lens, out_aux.pos) = BTC.scanInputs(_txBytes, out_aux.pos, 0);
+
+        (out_aux.output_values, out_aux.script_starts, out_aux.output_script_lens, out_aux.pos) = BTC.scanOutputs(_txBytes, out_aux.pos, 0);
+
+        {
+            for (uint i = 0; i < 3; i++) {
+                if (i==0) {
+                    (htlc.pk1, htlc.rev_secret, htlc.pk2) = BTC.parseOutputScriptHTLC(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    htlc.value = out_aux.output_values[i];
+                }
+                if (i == 1) {
+                    p2pkh.pkhash = BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    p2pkh.value = out_aux.output_values[i];
+                }
+                if (i == 2) {
+                    opreturn.data = BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    opreturn.value = out_aux.output_values[i];
+                }
+            }
+        }
+
+        console.log("Check value_output_1:", htlc.value);
+        console.log("Check pk1_Output1:", BytesLib.toHexString(uint(htlc.pk1), 32));
+        console.log("Check rev_sec:", BytesLib.toHexString(uint(htlc.rev_secret), 32));
+        console.log("Check pk2_Output1:", BytesLib.toHexString(uint(htlc.pk2), 32));
+
+        console.log("Check value_output_2:", p2pkh.value);
+        console.log("Check script_data_2:", BytesLib.toHexString(uint(p2pkh.pkhash), 32));
+        console.log("Check value_output_3:", opreturn.value);
+        console.log("Check script_data_3:", BytesLib.toHexString(uint(opreturn.data), 32));
+
+        return (htlc.value, htlc.pk1, htlc.rev_secret, htlc.pk2, p2pkh.value, p2pkh.pkhash, opreturn.value, opreturn.data);
     }
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timestamp) external {

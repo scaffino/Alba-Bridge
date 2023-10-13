@@ -22,7 +22,7 @@ describe("LNBridge", function() {
         })
 
         it("Get the three outputs", async function () {
-            let tx = await LNBridge.readThreeOutputs(testdata.new_CT_P_locked);
+            let tx = await LNBridge.readThreeOutputs(testdata.new_CT_P_unlocked);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
            })
 

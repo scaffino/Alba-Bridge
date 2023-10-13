@@ -104,6 +104,7 @@ import "hardhat/console.sol";
 import "./BytesLib.sol";
 
 library BTC {
+
     // Convert a variable integer into something useful and return it and
     // the index to after it.
     function parseVarInt(bytes memory txBytes, uint pos) internal pure returns (uint, uint) {
@@ -173,31 +174,30 @@ library BTC {
         return (output_values[0], output_addresses[0], output_values[1], output_addresses[1]);
     }
 
+
     // scan the full transaction bytes and return the first three output
     // values (in satoshis) and addresses (in binary)
-    function getFirstThreeOutputs(bytes memory txBytes)
-             internal pure returns (uint, bytes32, uint, bytes32, uint, bytes32)
+    function parseThreeOutputs(bytes memory txBytes, uint pos, uint[] memory input_script_lens, uint[] memory output_script_lens, uint[] memory script_starts, uint[] memory output_values)
+             internal pure returns (uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32)
     {
-        uint pos;
-        uint[] memory input_script_lens = new uint[](2); // (n) is the size of the array
-        uint[] memory output_script_lens = new uint[](3);
-        uint[] memory script_starts = new uint[](3);
-        uint[] memory output_values = new uint[](3);
-        bytes32[] memory output_addresses = new bytes32[](3);
-
-        pos = 4;  // skip version
 
         (input_script_lens, pos) = scanInputs(txBytes, pos, 0);
 
         (output_values, script_starts, output_script_lens, pos) = scanOutputs(txBytes, pos, 0);
-        
+
+        bytes32[] memory output_addresses = new bytes32[](5);
+
         for (uint i = 0; i < 3; i++) {
-            bytes32 pkhash;
-            pkhash = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
-            output_addresses[i] = pkhash;
+            if (i==0) {
+                (output_addresses[i], output_addresses[i+1],output_addresses[i+2]) = parseOutputScriptHTLC(txBytes, script_starts[i], output_script_lens[i]);
+            }
+            else {
+                output_addresses[i+2] = parseOutputScript(txBytes, script_starts[i], output_script_lens[i]);
+            }
         }
 
-        return (output_values[0], output_addresses[0], output_values[1], output_addresses[1], output_values[2], output_addresses[2]);
+        return (output_values[0], output_addresses[0], output_addresses[1], output_addresses[2], output_values[1], output_addresses[3], output_values[2], output_addresses[4]);
+
     }
 
     // Check whether `btcAddress` is in the transaction outputs *and*
@@ -300,10 +300,20 @@ library BTC {
         return bytes20(slice);
     }
 
+    // Slice 32 contiguous bytes from bytes `data`, starting at `start`
     function sliceBytes32(bytes memory data, uint start) internal pure returns (bytes32) {
         uint256 slice = 0;
         for (uint256 i = 0; i < 32; i++) {
             slice += uint256(uint8(data[i + start])) << (8 * (31 - i));
+        }
+        return bytes32(slice);
+    }
+
+    // TODO GIULIA: this function does not work properly. uint256 has only room for 32 bytes, but now we need 33
+    function sliceBytes33(bytes memory data, uint start) internal pure returns (bytes32) {
+        uint256 slice = 0;
+        for (uint256 i = 0; i < 33; i++) {
+            slice += uint256(uint8(data[i + start])) << (8 * (32 - i));
         }
         return bytes32(slice);
     }
@@ -376,6 +386,17 @@ library BTC {
             return (sliceBytes32(txBytes, pos + 2));
         } else {
             return bytes32(0);
+        }
+    }
+
+    function parseOutputScriptHTLC(bytes memory txBytes, uint pos, uint script_len)
+             internal pure returns (bytes32, bytes32, bytes32)
+    {
+        if (isLightningHTLC(txBytes, pos, script_len)) {
+            console.log("Parsed LightningHTLC output");
+            return (sliceBytes33(txBytes, pos + 1), sliceBytes32(txBytes, pos + 40), sliceBytes33(txBytes, pos + 74));
+        } else {
+            return (bytes32(0), bytes32(0), bytes32(0));
         }
     }
 }

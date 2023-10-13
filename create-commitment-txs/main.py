@@ -88,11 +88,11 @@ print("")
 # P is owner and V is punisher. Secret_rev is from P (V knows it)
 ct_P_locked = txs.get_LNBridge_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, secret_rev_P, hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=True)
 
-ct_V_locked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_V, id_P, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=True)
+ct_V_locked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=True)
 
 ct_P_unlocked = txs.get_LNBridge_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, secret_rev_P, hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=False)
 
-ct_V_unlocked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_V, id_P, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=False)
+ct_V_unlocked = txs.get_standard_ct(TxInput('f6617e14ee663db4eed1cc0367c2d770e4eb95e56b97d7785b13e5b57dcf9674', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=False)
 
 print("Comm TX P locked: ", ct_P_locked.serialize())
 print("")
