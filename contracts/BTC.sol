@@ -309,15 +309,6 @@ library BTC {
         return bytes32(slice);
     }
 
-    // TODO GIULIA: this function does not work properly. uint256 has only room for 32 bytes, but now we need 33
-    function sliceBytes33(bytes memory data, uint start) internal pure returns (bytes32) {
-        uint256 slice = 0;
-        for (uint256 i = 0; i < 33; i++) {
-            slice += uint256(uint8(data[i + start])) << (8 * (32 - i));
-        }
-        return bytes32(slice);
-    }
-
     // returns true if the bytes located in txBytes by pos and
     // script_len represent a P2PKH script
     function isP2PKH(bytes memory txBytes, uint pos, uint script_len) internal pure returns (bool) {
@@ -394,7 +385,8 @@ library BTC {
     {
         if (isLightningHTLC(txBytes, pos, script_len)) {
             console.log("Parsed LightningHTLC output");
-            return (sliceBytes33(txBytes, pos + 1), sliceBytes32(txBytes, pos + 40), sliceBytes33(txBytes, pos + 74));
+            //note: Compressed public keys are 33 bytes, consisting of a prefix either 0x02 or 0x03, and a 256-bit integer called x
+            return (sliceBytes32(txBytes, pos + 3), sliceBytes32(txBytes, pos + 40), sliceBytes32(txBytes, pos + 76));
         } else {
             return (bytes32(0), bytes32(0), bytes32(0));
         }

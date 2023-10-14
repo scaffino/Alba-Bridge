@@ -82,7 +82,7 @@ contract LNBridge {
         console.log("Check pk2_Output1:", BytesLib.toHexString(uint(htlc.pk2), 32));
 
         console.log("Check value_output_2:", p2pkh.value);
-        console.log("Check script_data_2:", BytesLib.toHexString(uint(p2pkh.pkhash), 32));
+        console.log("Check script_data_2:", BytesLib.toHexString(bytes20(p2pkh.pkhash)));
         console.log("Check value_output_3:", opreturn.value);
         console.log("Check script_data_3:", BytesLib.toHexString(uint(opreturn.data), 32));
 
