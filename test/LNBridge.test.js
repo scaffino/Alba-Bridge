@@ -22,9 +22,14 @@ describe("LNBridge", function() {
         })
 
         it("Get the three outputs", async function () {
-            let tx = await LNBridge.readThreeOutputs(testdata.new_CT_P_unlocked);
+            let tx = await LNBridge.getOutputData(testdata.new_CT_P_unlocked);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
-           })
+        })
+
+        it("Get timelock", async function () {
+            let tx = await LNBridge.getTimelock(testdata.new_CT_P_locked);
+            const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+        })
 
     });
 

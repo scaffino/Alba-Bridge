@@ -14,12 +14,14 @@ import "./BTC.sol";
 contract LNBridge {
 
     // define global variables for this contract instance (setup phase)
-    bytes32 private fundingTxId;
-    bytes32 private pkProver;
-    bytes32 private pkVerifier;
-    uint256 private index;
-    uint public timestamp; //october 18th, 00.00
-    uint public timestamp_dispute; //to be used
+    struct BridgeInstance {
+        bytes32 fundingTxId;
+        bytes32 pkProver;
+        bytes32 pkVerifier;
+        uint256 index;
+        uint timelock; //october 18th, 00.00
+        uint timelock_dispute; //to be used
+    }
 
     struct LightningHTLCData {
         uint value;
@@ -50,8 +52,9 @@ contract LNBridge {
     OpReturnData public opreturn;
     P2PKHData public p2pkh;
     ExtractOutputAux public out_aux;
+    BridgeInstance public bridge;
 
-    function readThreeOutputs(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
+    function getOutputData(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
 
         out_aux.pos = 4;
 
@@ -76,6 +79,7 @@ contract LNBridge {
             }
         }
 
+        /*
         console.log("Check value_output_1:", htlc.value);
         console.log("Check pk1_Output1:", BytesLib.toHexString(uint(htlc.pk1), 32));
         console.log("Check rev_sec:", BytesLib.toHexString(uint(htlc.rev_secret), 32));
@@ -85,16 +89,25 @@ contract LNBridge {
         console.log("Check script_data_2:", BytesLib.toHexString(bytes20(p2pkh.pkhash)));
         console.log("Check value_output_3:", opreturn.value);
         console.log("Check script_data_3:", BytesLib.toHexString(uint(opreturn.data), 32));
+        */
 
         return (htlc.value, htlc.pk1, htlc.rev_secret, htlc.pk2, p2pkh.value, p2pkh.pkhash, opreturn.value, opreturn.data);
     }
 
-    function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timestamp) external {
-        fundingTxId = _fundingTxId;
-        pkProver = _pkProver;
-        pkVerifier = _pkVerifier;
-        index = _index;
-        timestamp = _timestamp;
+    function getTimelock(bytes memory _txBytes) external returns(bytes4) {
+        uint256 rawTxSize = _txBytes.length;
+        //console.log("Tx Size: ", rawTxSize);
+        bytes4 timelock = bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4)));
+        //console.log("Timelock: ", BytesLib.toHexString(bytes4(timelock)));
+        return timelock;
+    }
+
+    function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timelock) external {
+        bridge.fundingTxId = _fundingTxId;
+        bridge.pkProver = _pkProver;
+        bridge.pkVerifier = _pkVerifier;
+        bridge.index = _index;
+        bridge.timelock = _timelock;
     }
 
     function submitProof(bytes memory rawTxP_unlocked, bytes memory sigV, bytes memory rawTxV_unlocked, bytes memory sigP) external {
