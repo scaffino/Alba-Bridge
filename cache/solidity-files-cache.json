@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTC.sol": {
-      "lastModificationDate": 1697269355020,
-      "contentHash": "fa4a98917d97248d1e1025c105a7b61e",
+      "lastModificationDate": 1697468144901,
+      "contentHash": "85c84ae5cda0e1adccbef3a978a57884",
       "sourceName": "contracts/BTC.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -77,8 +77,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1697461193430,
-      "contentHash": "370d3e64962aac6a7b7e5163bc8f1abf",
+      "lastModificationDate": 1697468295995,
+      "contentHash": "fc948f41ab487605505e0b507f83cb83",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.19",

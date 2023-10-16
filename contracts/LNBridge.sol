@@ -48,13 +48,19 @@ contract LNBridge {
         uint[] output_values;
     }
 
+    struct Signature {
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
+
     LightningHTLCData public htlc;
     OpReturnData public opreturn;
     P2PKHData public p2pkh;
     ExtractOutputAux public out_aux;
     BridgeInstance public bridge;
 
-    function getOutputData(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
+    function getOutputsData(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
 
         out_aux.pos = 4;
 
@@ -98,8 +104,29 @@ contract LNBridge {
         uint256 rawTxSize = _txBytes.length;
         //console.log("Tx Size: ", rawTxSize);
         bytes4 timelock = bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4)));
-        //console.log("Timelock: ", BytesLib.toHexString(bytes4(timelock)));
+        //console.log("Timelock: ", BytesLib.toHexString(timelock));
         return timelock;
+    }
+
+    function getInputsData(bytes memory _txBytes) external returns(bytes1, bytes32, bytes4) {
+
+        bytes4 inputIndex = bytes4(BytesLib.slice(_txBytes, 37, uint256(4)));
+        bytes32 txid = BytesLib.flipBytes32(bytes32(BytesLib.slice(_txBytes, 5, uint256(37))));
+        bytes1 number_of_inputs = bytes1(BytesLib.slice(_txBytes, 4, uint256(1)));
+
+        /*
+        console.log("inputIndex: ", BytesLib.toHexString(inputIndex));
+        console.log("txid: ", BytesLib.toHexString(uint(txid), 32));
+        console.log("number_of_inputs: ", BytesLib.toHexString(number_of_inputs));
+        */
+
+        return (number_of_inputs, txid, inputIndex);
+    }
+
+    function getSignatures(bytes memory _txBytes) external returns(Signature[] memory) {
+        Signature[] memory sigs;
+        
+        return sigs;
     }
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timelock) external {

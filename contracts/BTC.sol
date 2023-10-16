@@ -110,6 +110,7 @@ library BTC {
     function parseVarInt(bytes memory txBytes, uint pos) internal pure returns (uint, uint) {
         // the first byte tells us how big the integer is
         uint8 ibit = uint8(txBytes[pos]);
+        console.log("ibit: ", ibit);
         pos += 1;  // skip ibit
 
         if (ibit < 0xfd) {
@@ -144,7 +145,7 @@ library BTC {
                  + (uint(uint64(uint8(data[pos + 5])) * 2 ** 40))
                  + (uint(uint64(uint8(data[pos + 6])) * 2 ** 48))
                  + (uint(uint64(uint8(data[pos + 7])) * 2 ** 56));
-        }
+        } 
     }
 
     // scan the full transaction bytes and return the first two output
