@@ -142,11 +142,15 @@ contract LNBridge {
 
     // TODO GIULIA: check how to handle signature extraction and define which message is signed and which is the signature to give as input
     function verifySignature(bytes memory pk, bytes memory message, uint8 _v,  bytes32 _r, bytes32 _s) external returns(bool){
+        require(pk.length == 64, "CheckBitcoinSigs/checkSig -- Requires uncompressed unprefixed pubkey");
+        address _expected = address(CheckBitcoinSigs.accountFromPubkey(pk));
+        console.log("Expected address:", _expected);
         bytes32 digest = BTCUtils.hash256(message);
-        bool isValid = CheckBitcoinSigs.checkSig(pk, digest, _v, _r, _s);
-        console.log("Is signature valid? ", isValid);
-        require(isValid == true, "Invalid signature");
-        return isValid;
+        console.log("digest: ", BytesLib.toHexString(uint(digest), 32));
+        address _actual = ecrecover(digest, _v, _r, _s);
+        console.log("Actual address:  ", _actual);
+        require(_actual == _expected, "Invalid Signature");
+        return _actual == _expected;
 
         /////////////
         // 30 # DER Sequence tag
@@ -165,6 +169,18 @@ contract LNBridge {
 
 
 
+    }
+
+    function testSigFunction(bytes32 message, bytes memory signature) external view returns(address){
+        address mytestaddr = ECDSA.recover(message, signature);
+        return mytestaddr;
+    }
+
+    function testSigFunctionBTC(bytes32 message, bytes memory signature, bytes memory pk) external view returns(bytes memory){
+        address mytestaddr = ECDSA.recover(message, signature);
+        bytes memory btc_address = BTCUtils.hash160(abi.encodePacked(pk));
+        //require(mytestaddr == btc_address, "Invalid signature, returning invalid address");
+        return btc_address;
     }
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timelock) external {

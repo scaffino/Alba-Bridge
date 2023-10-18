@@ -17,5 +17,8 @@
     "hardhat": "^2.17.4",
     "hardhat-ethers": "^1.0.1",
     "hardhat-gas-reporter": "^1.0.9"
+  },
+  "dependencies": {
+    "eth-crypto": "^2.6.0"
   }
 }
