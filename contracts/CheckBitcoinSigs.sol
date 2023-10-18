@@ -5,6 +5,8 @@ pragma solidity ^0.8.9;
 
 //import {TypedMemView} from "@summa-tx/memview.sol/contracts/TypedMemView.sol";
 import "./TypedMemView.sol";
+import "hardhat/console.sol";
+import "./BTCUtils.sol";
 
 library CheckBitcoinSigs {
 
@@ -20,6 +22,15 @@ library CheckBitcoinSigs {
 
         bytes32 _digest = _pubkey.ref(0).keccak();
         return address((uint160(uint256(_digest))));
+    }
+
+    function accountFromPubkey_mod(bytes memory _pubkey) internal pure returns (bytes20) {
+        require(_pubkey.length == 64, "Pubkey must be 64-byte raw, uncompressed key.");
+
+        //bytes32 _digest = _pubkey.ref(0).keccak();
+        bytes20 _digest = bytes20(BTCUtils.hash160(_pubkey));
+        return _digest;
+        //return address((uint160(uint256(_digest))));
     }
 
     /// @notice          Calculates the p2wpkh output script of a pubkey
@@ -69,8 +80,10 @@ library CheckBitcoinSigs {
         bytes32 _s
     ) internal pure returns (bool) {
         require(_pubkey.length == 64, "CheckBitcoinSigs/checkSig -- Requires uncompressed unprefixed pubkey");
-        address _expected = accountFromPubkey(_pubkey);
+        address _expected = address(accountFromPubkey(_pubkey));
+        console.log("Expected address:", _expected);
         address _actual = ecrecover(_digest, _v, _r, _s);
+        console.log("Actual address:  ", _actual);
         return _actual == _expected;
     }
 

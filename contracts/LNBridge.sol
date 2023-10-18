@@ -1,15 +1,16 @@
 pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
-// Uncomment this line to use console.log
 import "hardhat/console.sol";
 import "./SafeMath.sol";
 import "./TypedMemView.sol";
 //import "./ViewBTC.sol";
-//import "./BTCUtils.sol";
-//import "./ECDSA.sol";
+import "./BTCUtils.sol";
+import "./ECDSA.sol";
 import "./CheckBitcoinSigs.sol";
 import "./BTC.sol";
+
+// TODO GIULIA: move helper functions to a helper file and only keep in this contract the functions of the protocol
 
 contract LNBridge {
 
@@ -32,12 +33,18 @@ contract LNBridge {
 
     struct P2PKHData {
         uint value;
-        bytes32 pkhash;
+        bytes20 pkhash;
     }
 
     struct OpReturnData {
         uint value;
         bytes32 data;
+    }
+
+    struct Input {
+        uint number_of_inputs;
+        bytes32 txid;
+        bytes4 inputIndex;
     }
 
     struct ExtractOutputAux {
@@ -54,13 +61,14 @@ contract LNBridge {
         bytes32 s;
     }
 
-    LightningHTLCData public htlc;
-    OpReturnData public opreturn;
-    P2PKHData public p2pkh;
-    ExtractOutputAux public out_aux;
     BridgeInstance public bridge;
 
-    function getOutputsData(bytes memory _txBytes) external returns(uint, bytes32, bytes32, bytes32, uint, bytes32, uint, bytes32) {
+    function getOutputsData(bytes memory _txBytes) external view returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
+
+        LightningHTLCData memory htlc;
+        OpReturnData memory opreturn;
+        P2PKHData memory p2pkh;
+        ExtractOutputAux memory out_aux;
 
         out_aux.pos = 4;
 
@@ -75,7 +83,7 @@ contract LNBridge {
                     htlc.value = out_aux.output_values[i];
                 }
                 if (i == 1) {
-                    p2pkh.pkhash = BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    p2pkh.pkhash = BTC.sliceBytes20(abi.encodePacked(BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i])),0);
                     p2pkh.value = out_aux.output_values[i];
                 }
                 if (i == 2) {
@@ -92,41 +100,71 @@ contract LNBridge {
         console.log("Check pk2_Output1:", BytesLib.toHexString(uint(htlc.pk2), 32));
 
         console.log("Check value_output_2:", p2pkh.value);
-        console.log("Check script_data_2:", BytesLib.toHexString(bytes20(p2pkh.pkhash)));
+        console.log("Check script_data_2:", BytesLib.toHexString(p2pkh.pkhash));
         console.log("Check value_output_3:", opreturn.value);
-        console.log("Check script_data_3:", BytesLib.toHexString(uint(opreturn.data), 32));
+        console.log("Check script_data_3:", BytesLib.toHexString(uint(opreturn.data), 32));       
         */
 
-        return (htlc.value, htlc.pk1, htlc.rev_secret, htlc.pk2, p2pkh.value, p2pkh.pkhash, opreturn.value, opreturn.data);
+        return (htlc, p2pkh, opreturn);
     }
 
-    function getTimelock(bytes memory _txBytes) external returns(bytes4) {
+    function getTimelock(bytes memory _txBytes) external view returns(bytes4) {
         uint256 rawTxSize = _txBytes.length;
         //console.log("Tx Size: ", rawTxSize);
-        bytes4 timelock = bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4)));
+        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4))));
         //console.log("Timelock: ", BytesLib.toHexString(timelock));
         return timelock;
     }
 
-    function getInputsData(bytes memory _txBytes) external returns(bytes1, bytes32, bytes4) {
+    function getInputsData(bytes memory _txBytes) external view returns(Input memory) {
 
-        bytes4 inputIndex = bytes4(BytesLib.slice(_txBytes, 37, uint256(4)));
-        bytes32 txid = BytesLib.flipBytes32(bytes32(BytesLib.slice(_txBytes, 5, uint256(37))));
-        bytes1 number_of_inputs = bytes1(BytesLib.slice(_txBytes, 4, uint256(1)));
+        Input memory input;
 
-        /*
-        console.log("inputIndex: ", BytesLib.toHexString(inputIndex));
-        console.log("txid: ", BytesLib.toHexString(uint(txid), 32));
-        console.log("number_of_inputs: ", BytesLib.toHexString(number_of_inputs));
-        */
+        (input.number_of_inputs, ) = BTC.parseVarInt(_txBytes, uint(4));
+        input.inputIndex = bytes4(BytesLib.slice(_txBytes, 37, uint256(4)));
+        input.txid = BytesLib.flipBytes32(bytes32(BytesLib.slice(_txBytes, 5, uint256(37))));
 
-        return (number_of_inputs, txid, inputIndex);
+        require(input.number_of_inputs == 1, "Tx has too many inputs (>1)");
+        
+        //console.log("inputIndex: ", BytesLib.toHexString(inputIndex));
+        //console.log("txid: ", BytesLib.toHexString(uint(txid), 32));
+        //console.log("number_of_inputs: ", number_of_inputs);
+        
+        return input;
     }
 
     function getSignatures(bytes memory _txBytes) external returns(Signature[] memory) {
+
         Signature[] memory sigs;
-        
+        // TODO GIULIA: write function that isolates the signature components
         return sigs;
+    }
+
+    // TODO GIULIA: check how to handle signature extraction and define which message is signed and which is the signature to give as input
+    function verifySignature(bytes memory pk, bytes memory message, uint8 _v,  bytes32 _r, bytes32 _s) external returns(bool){
+        bytes32 digest = BTCUtils.hash256(message);
+        bool isValid = CheckBitcoinSigs.checkSig(pk, digest, _v, _r, _s);
+        console.log("Is signature valid? ", isValid);
+        require(isValid == true, "Invalid signature");
+        return isValid;
+
+        /////////////
+        // 30 # DER Sequence tag
+        // 44 # Sequence length 0x44 (68) bytes
+        // 02 # Integer element
+        // 20 # Element length 0x20 (32) bytes
+        // 3ff7162d6635246dbf59b7fa9e72e3023e959a73b1fbc51edbaaa5a8dbc6d2f7 # ECDSA r value
+        // 02 # Integer element
+        // 20 # Element length 0x20 (32) bytes
+        // 776e2fa5740df01cc0ac47bda713e87fc59044960122ba45abb11c949655c584 # ECDSA s value
+        //  DER encoding completed
+        // 01  # this is the sighas flag (SIGHASH ALL, in this case)
+        /////////////
+
+        //Check this https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
+
+
+
     }
 
     function setup(bytes32 _fundingTxId, bytes32 _pkProver, bytes32 _pkVerifier, uint256 _index, uint _timelock) external {
@@ -162,3 +200,4 @@ contract LNBridge {
     }
 
 }
+

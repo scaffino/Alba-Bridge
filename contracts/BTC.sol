@@ -110,7 +110,6 @@ library BTC {
     function parseVarInt(bytes memory txBytes, uint pos) internal pure returns (uint, uint) {
         // the first byte tells us how big the integer is
         uint8 ibit = uint8(txBytes[pos]);
-        console.log("ibit: ", ibit);
         pos += 1;  // skip ibit
 
         if (ibit < 0xfd) {

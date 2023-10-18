@@ -22,6 +22,16 @@ def hash256(hexstring: str) -> str:
     h2 = hashlib.sha256(h1.digest())
     return h2.hexdigest()
 
+def decompress_pubkey(pk):
+    p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+    x = int.from_bytes(pk[1:33], byteorder='big')
+    y_sq = (pow(x, 3, p) + 7) % p
+    y = pow(y_sq, (p + 1) // 4, p)
+    if y % 2 != pk[0] % 2:
+        y = p - y
+    y = y.to_bytes(32, byteorder='big')
+    return b'\x04' + pk[1:33] + y
+
 #def print_tx(tx: Transaction, name: str) -> None:
 #    print(f'{name}: {int(len(tx.serialize())/2)} Bytes')
 #    print(tx.serialize())

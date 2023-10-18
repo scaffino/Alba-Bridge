@@ -53,6 +53,8 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
             tx = Transaction([tx_in], [tx_out0, tx_out1], "1699789104")
         else:
             tx = Transaction([tx_in], [tx_out0, tx_out1])
+    
+    #print("Tx to be (hashed?) and signed: ", tx.serialize())
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 

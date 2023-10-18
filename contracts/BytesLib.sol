@@ -600,6 +600,18 @@ library BytesLib {
         return string(bytesArray);
     }
 
+    function bytes4ToString(bytes4 _bytes4) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 4 && _bytes4[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 4 && _bytes4[i] != 0; i++) {
+            bytesArray[i] = _bytes4[i];
+        }
+        return string(bytesArray);
+    }
+
     function toHexString(uint256 value, uint256 length) internal pure returns (string memory) {
         uint256 localValue = value;
         bytes memory buffer = new bytes(2 * length + 2);
