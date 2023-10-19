@@ -88,17 +88,17 @@ secret_rev_V = hash256("Hey! This is V, and this is my revocation secret".encode
 #print("")
 
 # P is owner and V is punisher. Secret_rev is from P (V knows it)
-ct_P_locked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=True)
+#ct_P_locked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=True)
 
-ct_V_locked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=True)
+#ct_V_locked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=True)
 
 ct_P_unlocked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, hash256(secret_rev_V), 9000, 9000, 420, l=True, timelock=0x2, locked=False)
 
-ct_V_unlocked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=False)
+#ct_V_unlocked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, timelock=0x2, locked=False)
 
-print("Comm TX P locked: ", ct_P_locked.serialize())
+#print("Comm TX P locked: ", ct_P_locked.serialize())
 print("")
-print("Comm TX V locked: ", ct_V_locked.serialize())
+#print("Comm TX V locked: ", ct_V_locked.serialize())
 print("")
 print("Comm TX P unlocked: ", ct_P_unlocked.serialize()) 
 

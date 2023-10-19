@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTC.sol": {
-      "lastModificationDate": 1697542852981,
-      "contentHash": "bcc69ff95ad32e19bcf6e340fb616576",
+      "lastModificationDate": 1697706627719,
+      "contentHash": "685c729b95b2018827bda762a0915e6f",
       "sourceName": "contracts/BTC.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -30,7 +30,8 @@
       },
       "imports": [
         "hardhat/console.sol",
-        "./BytesLib.sol"
+        "./BytesLib.sol",
+        "./SECP256K1.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -77,8 +78,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1697647459779,
-      "contentHash": "b14c6384c249967250a62677c35e3a4c",
+      "lastModificationDate": 1697712819451,
+      "contentHash": "8118f3a0044aad951ba247892f6c461c",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -110,7 +111,8 @@
         "./BTCUtils.sol",
         "./ECDSA.sol",
         "./CheckBitcoinSigs.sol",
-        "./BTC.sol"
+        "./BTC.sol",
+        "./SECP256K1.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -374,6 +376,41 @@
       ],
       "artifacts": [
         "ECDSA"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/SECP256K1.sol": {
+      "lastModificationDate": 1697712708603,
+      "contentHash": "d683468a113387e6fd1cf6aec02fae1f",
+      "sourceName": "contracts/SECP256K1.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "SECP256K1"
       ]
     }
   }

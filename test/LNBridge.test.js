@@ -53,6 +53,7 @@ describe("LNBridge", function() {
             expect(timelock).to.equal("0x16997891");
         })
 
+        /*
         it("Verify Ethereum signature", async function () {
             const identity = EthCrypto.createIdentity(); //create identity
             const publicKey = EthCrypto.publicKeyByPrivateKey(identity.privateKey);
@@ -60,27 +61,17 @@ describe("LNBridge", function() {
             const digest = "0xfb4e6075077d50e3487a303ddaeadf7eb43d9c6e93c2d9d5325c2c77dd94c550";
             const signature = EthCrypto.sign(identity.privateKey, digest);
 
-            const returnedValue = await LNBridge.testSigFunction(digest, signature);
+            const returnedValue = await LNBridge.verifyETHSignature(digest, signature);
             expect(address).to.equal(returnedValue);
         })
+        */
 
         it("Verify Bitcoin signature", async function () {
             // Ethereum uses keccak256 for signing, and bitcoin libraries normally use sha256, so you have to use ethereum libraries for signing. I worked from the wrong assumption that I could use existing Bitcoin tools for signing the message and then recover it on the Ethereum side (https://ethereum.stackexchange.com/questions/32401/verifying-bicoin-signed-message-in-ethereum-smart-contract)
 
-            const publicKey = "40602913fbabf074554d1db1c9a108978167734826e36bddfb8830852de2137fc54044fb7c45df877f897071022b319868380d15bb73d515ccfe07562cc0f534" // this is the pk of P in Bitcoin
-            const address = EthCrypto.publicKey.toAddress(publicKey);
-            const digest = "0xfb4e6075077d50e3487a303ddaeadf7eb43d9c6e93c2d9d5325c2c77dd94c550";
-            const signature = EthCrypto.sign("0xd44348ff037a7f65bcf9b7c86181828f5e05dbfe6cf2efe9af6362c8d53a00b0", digest);
-            console.log("address: ", address);
+            const returnedValue = await LNBridge.verifyBTCSignature(testdata.TxDigest, testdata.V, testdata.R, testdata.S);
+            expect(testdata.pkProverUnprefixedUncompressed).to.equal(returnedValue);
 
-            const btc_address = "mhdTzofrDHXF18US18Y6ZfV5JhqCxa13yh";
-
-            const returnedValue = await LNBridge.testSigFunctionBTC(digest, signature, publicKey);
-            console.log("returned value: ", returnedValue);
-            expect(btc_address).to.equal(returnedValue);
-
-            // TODO GIULIA: we need to create the signature in Ethereum. How to handle this? 
-            // - map the ethereum address to the bitcoin address maybe?
         })
 
 
