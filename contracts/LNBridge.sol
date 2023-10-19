@@ -57,7 +57,6 @@ contract LNBridge {
     }
 
     struct Signature {
-        // TODO GIULIA: cannot make any assumption on r and s length. Use bytes memory instead of bytes32
         uint8 v;
         bytes r;
         bytes s;
@@ -182,7 +181,7 @@ contract LNBridge {
     }
 
     /*
-    // this funciton returns the Ethereum address
+    // this function returns the Ethereum address
     function verifyETHSignature(bytes32 message, bytes memory signature) external view returns(address){
         address mytestaddr = ECDSA.recover(message, signature);
         return mytestaddr;

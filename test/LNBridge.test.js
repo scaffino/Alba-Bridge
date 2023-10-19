@@ -66,11 +66,19 @@ describe("LNBridge", function() {
         })
         */
 
-        it("Verify Bitcoin signature", async function () {
+        it("Verify Bitcoin signature P", async function () {
             // Ethereum uses keccak256 for signing, and bitcoin libraries normally use sha256, so you have to use ethereum libraries for signing. I worked from the wrong assumption that I could use existing Bitcoin tools for signing the message and then recover it on the Ethereum side (https://ethereum.stackexchange.com/questions/32401/verifying-bicoin-signed-message-in-ethereum-smart-contract)
 
             const returnedValue = await LNBridge.verifyBTCSignature(testdata.TxDigest, testdata.V, testdata.R, testdata.S);
             expect(testdata.pkProverUnprefixedUncompressed).to.equal(returnedValue);
+
+        })
+
+        it("Verify Bitcoin signature V", async function () {
+            // Ethereum uses keccak256 for signing, and bitcoin libraries normally use sha256, so you have to use ethereum libraries for signing. I worked from the wrong assumption that I could use existing Bitcoin tools for signing the message and then recover it on the Ethereum side (https://ethereum.stackexchange.com/questions/32401/verifying-bicoin-signed-message-in-ethereum-smart-contract)
+
+            const returnedValue = await LNBridge.verifyBTCSignature(testdata.TxDigest, testdata.V, testdata.R_V, testdata.S_V);
+            expect(testdata.pkVerifierUnprefixedUncompressed).to.equal(returnedValue);
 
         })
 
