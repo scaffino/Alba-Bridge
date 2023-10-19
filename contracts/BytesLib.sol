@@ -419,6 +419,25 @@ library BytesLib {
         return abi.encodePacked(_data);
     }
 
+    /* @notice      Convert uint256 to bytes
+    *  @param _b    uint256 that needs to be converted
+    *  @return      bytes
+    */
+    function uint256ToBytes(uint256 _value) internal pure returns (bytes memory bs) {
+        require(_value <= 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, "Value exceeds the range");
+        assembly {
+            // Get a location of some free memory and store it in result as
+            // Solidity does for memory variables.
+            bs := mload(0x40)
+            // Put 0x20 at the first word, the length of bytes for uint256 value
+            mstore(bs, 0x20)
+            //In the next word, put value in bytes format to the next 32 bytes
+            mstore(add(bs, 0x20), _value)
+            // Update the free-memory pointer by padding our last write location to 32 bytes
+            mstore(0x40, add(bs, 0x40))
+        }
+    }
+
     function keccak256Slice(bytes memory _bytes, uint _start, uint _length) pure internal returns (bytes32 result) {
         uint _end = _start + _length;
         require(_end > _start && _bytes.length >= _end, "Slice out of bounds");
@@ -608,6 +627,18 @@ library BytesLib {
         bytes memory bytesArray = new bytes(i);
         for (i = 0; i < 4 && _bytes4[i] != 0; i++) {
             bytesArray[i] = _bytes4[i];
+        }
+        return string(bytesArray);
+    }
+
+    function bytes1ToString(bytes1 _bytes1) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 2 && _bytes1[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 1 && _bytes1[i] != 0; i++) {
+            bytesArray[i] = _bytes1[i];
         }
         return string(bytesArray);
     }

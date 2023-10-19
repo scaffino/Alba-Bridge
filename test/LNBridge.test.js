@@ -74,6 +74,20 @@ describe("LNBridge", function() {
 
         })
 
+        it("Extract signatures from raw transaction", async function () {
+
+            const sigs = await LNBridge.getSignatures(testdata.TxSigned);
+            expect(sigs[0].r).to.equal(testdata.R);
+            expect(sigs[0].s).to.equal(testdata.S);
+            expect(sigs[1].r).to.equal(testdata.R_V);
+            expect(sigs[1].s).to.equal(testdata.S_V);
+
+            //const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+
+        })
+
+        
+
 
 
     });

@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "hardhat/console.sol";
 import "./SafeMath.sol";
 import "./TypedMemView.sol";
-//import "./ViewBTC.sol";
+//import "./BytesLib.sol";
 import "./BTCUtils.sol";
 import "./ECDSA.sol";
 import "./CheckBitcoinSigs.sol";
@@ -57,9 +57,10 @@ contract LNBridge {
     }
 
     struct Signature {
+        // TODO GIULIA: cannot make any assumption on r and s length. Use bytes memory instead of bytes32
         uint8 v;
-        bytes32 r;
-        bytes32 s;
+        bytes r;
+        bytes s;
     }
 
     BridgeInstance public bridge;
@@ -134,11 +135,35 @@ contract LNBridge {
         return input;
     }
 
-    function getSignatures(bytes memory _txBytes) external returns(Signature[] memory) {
+    function getSignatures(bytes memory _txBytes) external view returns(Signature memory, Signature memory) {
 
-        Signature[] memory sigs;
-        // TODO GIULIA: write function that isolates the signature components
-        return sigs;
+        Signature memory sigP;
+        Signature memory sigV;
+
+        // extract signature of V
+        sigV.v = 27;
+        sigV.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+
+        if (_txBytes[42] == 0x47) { 
+            sigV.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
+        } else if (_txBytes[42] == 0x46) {
+            sigV.r = BTC.sliceBytes31(_txBytes, 47);
+        }
+
+        // extract signature of P
+        sigP.v = 27; 
+        sigP.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 152));
+
+        if (_txBytes[114] == 0x47) { 
+            sigP.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 119));
+        } else if (_txBytes[114] == 0x46) {
+            sigP.r = BTC.sliceBytes31(_txBytes, 119);
+        }
+
+        //console.log("this is pos 114 ", BytesLib.toHexString(uint256(uint8(_txBytes[114])), 1));
+
+        return (sigP, sigV);
+
 
         /////////////
         // 30 # DER Sequence tag
@@ -156,11 +181,13 @@ contract LNBridge {
         //Check this https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
     }
 
+    /*
     // this funciton returns the Ethereum address
     function verifyETHSignature(bytes32 message, bytes memory signature) external view returns(address){
         address mytestaddr = ECDSA.recover(message, signature);
         return mytestaddr;
     }
+    */
 
     //this function returns the signing Public Key 
     function verifyBTCSignature(uint256 digest, uint8 v, uint256 r, uint256 s) external view returns (bytes memory) {

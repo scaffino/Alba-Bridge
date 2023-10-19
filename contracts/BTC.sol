@@ -301,6 +301,15 @@ library BTC {
         return bytes20(slice);
     }
 
+    // Slice 1 contiguous bytes from bytes `data`, starting at `start`
+    function sliceBytes1(bytes memory data, uint start) internal pure returns (bytes1) {
+        uint8 slice = 0;
+        for (uint8 i = 0; i < 1; i++) {
+            slice += uint8(data[i + start]) << (8 * (0 - i));
+        }
+        return bytes1(slice);
+    }
+
     // Slice 32 contiguous bytes from bytes `data`, starting at `start`
     function sliceBytes32(bytes memory data, uint start) internal pure returns (bytes32) {
         uint256 slice = 0;
@@ -308,6 +317,15 @@ library BTC {
             slice += uint256(uint8(data[i + start])) << (8 * (31 - i));
         }
         return bytes32(slice);
+    }
+
+    // Slice 31 contiguous bytes from bytes `data`, starting at `start`
+    function sliceBytes31(bytes memory data, uint start) internal pure returns (bytes memory) {
+        uint256 slice = 0;
+        for (uint256 i = 0; i < 31; i++) {
+            slice += uint256(uint8(data[i + start])) << (8 * (30 - i));
+        }
+        return BytesLib.uint256ToBytes(slice);
     }
 
     // returns true if the bytes located in txBytes by pos and
