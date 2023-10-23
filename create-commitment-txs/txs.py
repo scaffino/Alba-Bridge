@@ -1,4 +1,6 @@
-from bitcoinutils.transactions import Transaction, TxOutput, TxInput, Sequence, TYPE_RELATIVE_TIMELOCK, TYPE_ABSOLUTE_TIMELOCK
+#from bitcoinutils.transactions import Transaction, TxOutput, TxInput, Sequence, TYPE_RELATIVE_TIMELOCK, TYPE_ABSOLUTE_TIMELOCK
+from transactions import Transaction, TxOutput, TxInput, Sequence, TYPE_RELATIVE_TIMELOCK, TYPE_ABSOLUTE_TIMELOCK
+
 from bitcoinutils.script import Script
 from identity import Id
 import init
@@ -25,9 +27,10 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 
     sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
-    sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+    #sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
 
-    tx_in.script_sig = Script([sig_r, sig_l])
+    #tx_in.script_sig = Script([sig_r, sig_l])
+    tx_in.script_sig = Script([sig_l])
 
     return tx
 
@@ -58,10 +61,11 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 
-    sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+    #sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
     sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
 
-    tx_in.script_sig = Script([sig_r, sig_l])
+    #tx_in.script_sig = Script([sig_r, sig_l])
+    tx_in.script_sig = Script([sig_r]) #only signed by the counterparty
 
     return tx
 

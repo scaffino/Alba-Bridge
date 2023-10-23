@@ -78,8 +78,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1697785159310,
-      "contentHash": "81852dbf3fde660c8032dcab2a02e385",
+      "lastModificationDate": 1698050284812,
+      "contentHash": "d6ab064337e664dcde5785d3da2aafa2",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -109,7 +109,7 @@
         "./ECDSA.sol",
         "./BTC.sol",
         "./SECP256K1.sol",
-        "./ParseBitcoinRawTx.sol"
+        "./ParseBTCLib.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -303,8 +303,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTCUtils.sol": {
-      "lastModificationDate": 1696932536870,
-      "contentHash": "4d500cc9960268854d029e8530d8f644",
+      "lastModificationDate": 1698053602944,
+      "contentHash": "fd4e259ba476e1ee4dfd2af6127771a8",
       "sourceName": "contracts/BTCUtils.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -411,9 +411,51 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBitcoinRawTx.sol": {
-      "lastModificationDate": 1697783668252,
-      "contentHash": "840190c47e8d83838d2ac7540810f897",
+      "lastModificationDate": 1698075808993,
+      "contentHash": "58911d50428baefaf9047b9102b34ef8",
       "sourceName": "contracts/ParseBitcoinRawTx.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "hardhat/console.sol",
+        "./ECDSA.sol",
+        "./BTC.sol",
+        "./BTCUtils.sol",
+        "./SECP256K1.sol",
+        "./BTCUtils.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "ParseBitcoinRawTx"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
+      "lastModificationDate": 1697792719990,
+      "contentHash": "1d32cc0b08093704b04cea137bb61e49",
+      "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -447,7 +489,7 @@
         "^0.8.9"
       ],
       "artifacts": [
-        "ParseBitcoinRawTx"
+        "ParseBTCLib"
       ]
     }
   }

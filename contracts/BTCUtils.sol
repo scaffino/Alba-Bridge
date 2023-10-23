@@ -128,6 +128,13 @@ library BTCUtils {
         return abi.encodePacked(ripemd160(abi.encodePacked(sha256(_b))));
     }
 
+    function getSha256(string memory str) internal pure returns (bytes32) {
+    bytes32 hash = sha256(abi.encodePacked(str));
+
+    return hash;
+    //string y    = hash;
+    }
+
     /// @notice          Implements bitcoin's hash256 (double sha2)
     /// @dev             abi.encodePacked changes the return to bytes instead of bytes32
     /// @param _b        The pre-image

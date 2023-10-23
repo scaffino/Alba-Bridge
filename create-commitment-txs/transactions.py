@@ -13,6 +13,7 @@ import math
 import hashlib
 import struct
 from typing import Optional
+from binascii import unhexlify, hexlify
 
 from bitcoinutils.constants import (
     DEFAULT_TX_SEQUENCE,
@@ -39,8 +40,6 @@ from bitcoinutils.utils import (
     encode_varint,
     tagged_hash,
     prepend_varint,
-    h_to_b,
-    b_to_h,
 )
 
 
@@ -88,7 +87,7 @@ class TxInput:
 
         # if user provided a sequence it would be as string (for now...)
         if isinstance(sequence, str):
-            self.sequence = h_to_b(sequence)
+            self.sequence = unhexlify(sequence)
         else:
             self.sequence = sequence
 
@@ -104,7 +103,7 @@ class TxInput:
         # - note that we reverse the byte order for the tx hash since the string
         #   was displayed in little-endian!
         # - note that python's struct uses little-endian by default
-        txid_bytes = h_to_b(self.txid)[::-1]
+        txid_bytes = unhexlify(self.txid)[::-1]
         txout_bytes = struct.pack("<L", self.txout_index)
         script_sig_bytes = self.script_sig.to_bytes()
         data = (
@@ -122,7 +121,6 @@ class TxInput:
                 "txid": self.txid,
                 "txout_index": self.txout_index,
                 "script_sig": self.script_sig,
-                "sequence": self.sequence.hex(),
             }
         )
 
@@ -199,7 +197,7 @@ class TxWitnessInput:
         creates a copy of the object (classmethod)
     """
 
-    def __init__(self, stack: list[str]) -> None:
+    def __init__(self, stack: list[str | bytes]) -> None:
         """See description"""
 
         self.stack = stack
@@ -209,7 +207,7 @@ class TxWitnessInput:
         stack_bytes = b""
         for item in self.stack:
             # witness items can only be data items (hex str)
-            item_bytes = prepend_varint(h_to_b(item))
+            item_bytes = prepend_varint(unhexlify(item))
             stack_bytes += item_bytes
 
         return stack_bytes
@@ -500,7 +498,7 @@ class Transaction:
 
         # if user provided a locktime it would be as string (for now...)
         if isinstance(locktime, str):
-            self.locktime = h_to_b(locktime)
+            self.locktime = unhexlify(locktime)
         else:
             self.locktime = locktime
 
@@ -567,7 +565,7 @@ class Transaction:
             for n in range(0, len(inputs)):
                 n_items, size = vi_to_int(rawtx[cursor : cursor + 9])
                 cursor += size
-                witnesses_tmp: list[str] = []
+                witnesses_tmp: list[str | bytes] = []
                 for m in range(0, n_items):
                     witness = b"\0"
                     item_size, size = vi_to_int(rawtx[cursor : cursor + 9])
@@ -575,8 +573,7 @@ class Transaction:
                         witness = rawtx[cursor + size : cursor + item_size + size]
                     cursor += item_size + size
                     witnesses_tmp.append(witness.hex())
-                if witnesses_tmp:
-                    witnesses.append(TxWitnessInput(stack=witnesses_tmp))
+                witnesses.append(TxWitnessInput(stack=witnesses_tmp))
 
         return Transaction(
             inputs=inputs, outputs=outputs, has_segwit=has_segwit, witnesses=witnesses
@@ -706,10 +703,10 @@ class Transaction:
         # It is converted to 1 byte before serializing to send to the network
         tx_for_signing += struct.pack("<i", sighash)
 
+        print("Tx for signing: ", tx_for_signing.hex())
+
         # create transaction digest -- note double hashing
         tx_digest = hashlib.sha256(hashlib.sha256(tx_for_signing).digest()).digest()
-
-        print("Tx digest: ", tx_digest)
 
         return tx_digest
 
@@ -764,9 +761,8 @@ class Transaction:
             hash_prevouts = b""
             for txin in tmp_tx.inputs:
                 # TODO ? <L is 8 bytes, should be 4 bytes <I instead
-                hash_prevouts += h_to_b(txin.txid)[::-1] + struct.pack(
-                    "<L",
-                    txin.txout_index,
+                hash_prevouts += unhexlify(txin.txid)[::-1] + struct.pack(
+                    "<L", txin.txout_index
                 )
             hash_prevouts = hashlib.sha256(
                 hashlib.sha256(hash_prevouts).digest()
@@ -814,9 +810,8 @@ class Transaction:
         # add tx outpoint (utxo txid + index)
         # TODO <L is 8 bytes, should be 4 bytes <I instead
         txin = self.inputs[txin_index]
-        tx_for_signing += h_to_b(txin.txid)[::-1] + struct.pack(
-            "<L",
-            txin.txout_index,
+        tx_for_signing += unhexlify(txin.txid)[::-1] + struct.pack(
+            "<L", txin.txout_index
         )
 
         # add tx script code
@@ -920,9 +915,8 @@ class Transaction:
             # print('1')
             # the SHA256 of the serialization of all input outpoints
             for txin in tmp_tx.inputs:
-                hash_prevouts += h_to_b(txin.txid)[::-1] + struct.pack(
-                    "<I",
-                    txin.txout_index,
+                hash_prevouts += unhexlify(txin.txid)[::-1] + struct.pack(
+                    "<I", txin.txout_index
                 )
             hash_prevouts = hashlib.sha256(hash_prevouts).digest()
             tx_for_signing += hash_prevouts
@@ -937,7 +931,7 @@ class Transaction:
             for scr in script_pubkeys:
                 s = scr.to_hex()
                 script_len = int(len(s) / 2)
-                hash_script_pubkeys += bytes([script_len]) + h_to_b(s)
+                hash_script_pubkeys += bytes([script_len]) + unhexlify(s)
             hash_script_pubkeys = hashlib.sha256(hash_script_pubkeys).digest()
             tx_for_signing += hash_script_pubkeys
 
@@ -967,16 +961,15 @@ class Transaction:
             # print('3')
             txin = tmp_tx.inputs[txin_index]
             # convert txid to big-endian first
-            tx_for_signing += h_to_b(txin.txid)[::-1] + struct.pack(
-                "<I",
-                txin.txout_index,
+            tx_for_signing += unhexlify(txin.txid)[::-1] + struct.pack(
+                "<I", txin.txout_index
             )
 
             tx_for_signing += amounts[txin_index].to_bytes(8, "little")
 
             script_pubkey = script_pubkeys[txin_index].to_hex()
             script_len = int(len(script_pubkey) / 2)
-            tx_for_signing += bytes([script_len]) + h_to_b(script_pubkey)
+            tx_for_signing += bytes([script_len]) + unhexlify(script_pubkey)
 
             tx_for_signing += txin.sequence
         else:
@@ -1054,7 +1047,7 @@ class Transaction:
         data = self.to_bytes(False)
         hash = hashlib.sha256(hashlib.sha256(data).digest()).digest()
         # note that we reverse the hash for display purposes
-        return b_to_h(hash[::-1])
+        return hexlify(hash[::-1]).decode("utf-8")
 
     def get_wtxid(self) -> str:
         """Hashes the serialized (bytes) tx including segwit marker and witnesses"""
@@ -1067,7 +1060,7 @@ class Transaction:
         data = self.to_bytes(self.has_segwit)
         hash = hashlib.sha256(hashlib.sha256(data).digest()).digest()
         # note that we reverse the hash for display purposes
-        return b_to_h(hash[::-1])
+        return hexlify(hash[::-1]).decode("utf-8")
 
     def get_size(self) -> int:
         """Gets the size of the transaction"""
@@ -1109,7 +1102,7 @@ class Transaction:
     def to_hex(self) -> str:
         """Converts object to hexadecimal string"""
 
-        return b_to_h(self.to_bytes(self.has_segwit))
+        return hexlify(self.to_bytes(self.has_segwit)).decode("utf-8")
 
     def serialize(self) -> str:
         """Converts object to hexadecimal string"""

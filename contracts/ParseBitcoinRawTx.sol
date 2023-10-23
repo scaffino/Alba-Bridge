@@ -4,7 +4,11 @@ pragma experimental ABIEncoderV2;
 import "hardhat/console.sol";
 import "./ECDSA.sol";
 import "./BTC.sol";
+import "./BTCUtils.sol";
 import "./SECP256K1.sol";
+import "./BTCUtils.sol";
+
+// TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
 
 contract ParseBitcoinRawTx {
 
@@ -161,6 +165,23 @@ contract ParseBitcoinRawTx {
         //Check this https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
     }
 
+    function getSignature(bytes memory _txBytes) external view returns(Signature memory) {
+
+        Signature memory sig;
+
+        // extract signature of V
+        sig.v = 27;
+        sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+
+        if (_txBytes[42] == 0x47) { 
+            sig.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
+        } else if (_txBytes[42] == 0x46) {
+            sig.r = BTC.sliceBytes31(_txBytes, 47);
+        }
+
+        return sig;
+}
+
     /*
     // this function returns the Ethereum address
     function verifyETHSignature(bytes32 message, bytes memory signature) external view returns(address){
@@ -175,5 +196,11 @@ contract ParseBitcoinRawTx {
         return abi.encodePacked(x, y);
     }
 
+    function getTxDigest(bytes memory _txBytes) external view returns (bytes32) {
+
+        bytes32 digest = BTCUtils.hash256(bytes(_txBytes));
+        return digest;
+        
+    }
 }
 

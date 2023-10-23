@@ -17,10 +17,18 @@ describe("LNBridge", function(account) {
 
     describe("Test LNBridge", function () {
 
-        it("Setup", async function () {
+        it("Test Setup", async function () {
          let tx = await LNBridge.setup(testdata.fundingTxId, testdata.pkProver, testdata.pkVerifier, testdata.index, testdata.timestamp);
          const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
         }) 
+
+        it("Test SubmitProof", async function () {
+            /* let tx = await LNBridge.submitProof(testdata.CT_P_withVsig, testdata.CT_V_withPsig);
+            const receipt = await ethers.provider.getTransactionReceipt(tx.hash); */
+
+            const isProofValid = await LNBridge.submitProof(testdata.CT_P_withVsig, testdata.CT_V_withPsig);
+            expect(isProofValid).to.equal(true);
+           }) 
 
     });
 

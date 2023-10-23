@@ -86,6 +86,13 @@ describe("ParseBitcoinRawTx", function() {
 
         })
 
+        it("Extract tx digest from raw transaction", async function () {
+
+            const digest = await ParseBitcoinRawTx.getTxDigest(testdata.TxForSigning);
+            expect(digest).to.equal(testdata.TxDigest);
+
+        })
+
     });
 
 })
