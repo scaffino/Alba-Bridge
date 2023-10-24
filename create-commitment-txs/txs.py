@@ -11,7 +11,7 @@ init.init_network()
 
 ### Transactions for lightning
 
-def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: int, val_r: int, fee: int, l: bool, timelock, locked: bool) -> Transaction:
+def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: int, val_r: int, fee: int, l: bool, bothsigs: bool, timelock, locked: bool) -> Transaction:
     if l:
         tx_out0 = TxOutput(int(val_l-fee/2), scripts.get_script_lightning_locked(id_l, id_r, hashed_secret, timelock)) # output to l
         tx_out1 = TxOutput(int(val_r-fee/2), id_r.p2pkh) # output to r
@@ -20,21 +20,35 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
     if locked:
-        tx = Transaction([tx_in], [tx_out0, tx_out1], "1699789104")
+        tx = Transaction([tx_in], [tx_out0, tx_out1], "16997891")
     else:
         tx = Transaction([tx_in], [tx_out0, tx_out1])
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 
-    sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+    if bothsigs:
+        sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+        sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+        tx_in.script_sig = Script([sig_r, sig_l])
+    else:
+        if l:
+            #sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+            sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+            tx_in.script_sig = Script([sig_r])
+        else:
+            sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+            #sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+            tx_in.script_sig = Script([sig_l])
+
+    #sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
     #sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
 
     #tx_in.script_sig = Script([sig_r, sig_l])
-    tx_in.script_sig = Script([sig_l])
+    #tx_in.script_sig = Script([sig_l])
 
     return tx
 
-def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val, val_l: int, val_r: int, fee: int, l: bool, timelock, locked: bool) -> Transaction:
+def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val, val_l: int, val_r: int, fee: int, l: bool, bothsigs: bool, timelock, locked: bool) -> Transaction:
     if l: #ct_prover, has id and secret_V in opreturn output
         tx_out0 = TxOutput(int(val_l-fee/2), scripts.get_script_lightning_locked(id_l, id_r, hashed_secret, timelock)) # output to l
         tx_out1 = TxOutput(int(val_r-fee/2), id_r.p2pkh) # output to r
@@ -44,7 +58,7 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
         #tx_out3 = TxOutput(0, op_return_script_id) 
 
         if locked:
-            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "1699789104")
+            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "16997891")
         else:
             tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2])
 
@@ -53,7 +67,7 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
         if locked:
-            tx = Transaction([tx_in], [tx_out0, tx_out1], "1699789104")
+            tx = Transaction([tx_in], [tx_out0, tx_out1], "16997891")
         else:
             tx = Transaction([tx_in], [tx_out0, tx_out1])
     
@@ -61,11 +75,22 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
 
     scriptFToutput = scripts.get_script_ft_output(id_l, id_r)
 
-    #sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
-    sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+    if bothsigs:
+        sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+        sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+        tx_in.script_sig = Script([sig_r, sig_l])
+    else:
+        if l:
+            #sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+            sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+            tx_in.script_sig = Script([sig_r])
+        else:
+            sig_l = id_l.sk.sign_input(tx, 0, scriptFToutput)
+            #sig_r = id_r.sk.sign_input(tx, 0, scriptFToutput)
+            tx_in.script_sig = Script([sig_l])
 
     #tx_in.script_sig = Script([sig_r, sig_l])
-    tx_in.script_sig = Script([sig_r]) #only signed by the counterparty
+    #tx_in.script_sig = Script([sig_r]) #only signed by the counterparty
 
     return tx
 

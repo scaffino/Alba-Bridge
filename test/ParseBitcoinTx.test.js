@@ -16,8 +16,8 @@ describe("ParseBitcoinRawTx", function() {
 
     describe("Test ParseBitcoinRawTx", function () {
 
-        it("Verify function getOutputsData correctly extracts output data", async function () {
-            const returnedValues = await ParseBitcoinRawTx.getOutputsData(testdata.new_CT_P_unlocked);
+        it("Verify function getOutputsData correctly extracts output data from P's unlocked commitment transaction", async function () {
+            const returnedValues = await ParseBitcoinRawTx.getOutputsDataLNB(testdata.new_CT_P_unlocked);
             const htlc = returnedValues[0];
             const p2pkh = returnedValues[1];
             const opreturn = returnedValues[2];
@@ -31,6 +31,19 @@ describe("ParseBitcoinRawTx", function() {
             expect(opreturn.data).to.equal("0xf0f0427c47433d9d440fc105e7d61d1520b5c889ac6405596362fdce95658a35"); 
         })
 
+        it("Verify function getOutputsData correctly extracts output data from V's unlocked commitment transaction", async function () {
+            const returnedValues = await ParseBitcoinRawTx.getOutputsData_2(testdata.new_CT_V_unlocked);
+            const htlc = returnedValues[0];
+            const p2pkh = returnedValues[1];
+            const opreturn = returnedValues[2];
+            expect(htlc.value).to.equal(8790); 
+            expect(htlc.pk1).to.equal("0x40602913fbabf074554d1db1c9a108978167734826e36bddfb8830852de2137f");
+            expect(htlc.rev_secret).to.equal("0x1129672217863dba8accf8bd40cfa6d9728e4ea71a1ce98b3cdac50e8bac8c64"); 
+            expect(htlc.pk2).to.equal("0x13f17fa639f9cf2108e9dc9a14df8a9d5b9f1df1a91efe3d2830e08edd71e182"); 
+            expect(p2pkh.value).to.equal(8790);
+            expect(p2pkh.pkhash).to.equal("0x172b8ab555aa28d6bd281de387d3ec9bd47e22ab"); 
+        })
+
         it("Revert if Commitment Tx has more than one input", async function () {
              await expect(ParseBitcoinRawTx.getInputsData(testdata.rawFundingTransaction)).to.be.revertedWith("Tx has too many inputs (>1)");
         })
@@ -42,9 +55,14 @@ describe("ParseBitcoinRawTx", function() {
             expect(returnedValues.inputIndex).to.equal("0x00000000"); // index of the input (4 bytes)
         })
 
-        it("Verify timelock is correctly extracted", async function () {
+        it("Verify timelock is correctly extracted: there is timelock ", async function () {
             const timelock = await ParseBitcoinRawTx.getTimelock(testdata.new_CT_P_locked);
             expect(timelock).to.equal("0x16997891");
+        }) 
+
+        it("Verify timelock is correctly extracted: no timelock", async function () {
+            const timelock = await ParseBitcoinRawTx.getTimelock(testdata.new_CT_P_unlocked);
+            expect(timelock).to.equal("0x00000000");
         }) 
 
         /*
@@ -63,7 +81,7 @@ describe("ParseBitcoinRawTx", function() {
         it("Verify Bitcoin signature P", async function () {
             // Ethereum uses keccak256 for signing, and bitcoin libraries normally use sha256, so you have to use ethereum libraries for signing. I worked from the wrong assumption that I could use existing Bitcoin tools for signing the message and then recover it on the Ethereum side (https://ethereum.stackexchange.com/questions/32401/verifying-bicoin-signed-message-in-ethereum-smart-contract)
 
-            const returnedValue = await ParseBitcoinRawTx.verifyBTCSignature(testdata.TxDigest, testdata.V, testdata.R, testdata.S);
+            const returnedValue = await ParseBitcoinRawTx.verifyBTCSignature(testdata.TxPDigest, testdata.V, testdata.R, testdata.S);
             expect(testdata.pkProverUnprefixedUncompressed).to.equal(returnedValue);
 
         })
@@ -71,7 +89,7 @@ describe("ParseBitcoinRawTx", function() {
         it("Verify Bitcoin signature V", async function () {
             // Ethereum uses keccak256 for signing, and bitcoin libraries normally use sha256, so you have to use ethereum libraries for signing. I worked from the wrong assumption that I could use existing Bitcoin tools for signing the message and then recover it on the Ethereum side (https://ethereum.stackexchange.com/questions/32401/verifying-bicoin-signed-message-in-ethereum-smart-contract)
 
-            const returnedValue = await ParseBitcoinRawTx.verifyBTCSignature(testdata.TxDigest, testdata.V, testdata.R_V, testdata.S_V);
+            const returnedValue = await ParseBitcoinRawTx.verifyBTCSignature(testdata.TxPDigest, testdata.V, testdata.R_V, testdata.S_V);
             expect(testdata.pkVerifierUnprefixedUncompressed).to.equal(returnedValue);
 
         })
@@ -86,10 +104,17 @@ describe("ParseBitcoinRawTx", function() {
 
         })
 
-        it("Extract tx digest from raw transaction", async function () {
+        it("Extract tx digest from P's raw transaction", async function () {
 
-            const digest = await ParseBitcoinRawTx.getTxDigest(testdata.TxForSigning);
-            expect(digest).to.equal(testdata.TxDigest);
+            const digest = await ParseBitcoinRawTx.getTxDigest(testdata.CT_P_withVsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all);
+            expect(digest).to.equal("0x0ecbf461785be2b7eef7c0b8391f97065e488ec69edde0eabbe49036e88a3c9d"); // new digest
+
+        })
+
+        it("Extract tx digest from V's raw transaction", async function () {
+
+            const digest = await ParseBitcoinRawTx.getTxDigest(testdata.CT_V_withPsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all);
+            expect(digest).to.equal(testdata.TxVDigest);
 
         })
 

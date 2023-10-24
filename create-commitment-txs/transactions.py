@@ -694,6 +694,7 @@ class Transaction:
 
         # get the bytes of the temporary transaction
         tx_for_signing = tmp_tx.to_bytes(False)
+        #print("Tx for signing before sighash: ", tx_for_signing.hex())
 
         # add sighash bytes to be hashed
         # Note that although sighash is one byte it is hashed as a 4 byte value.
@@ -707,6 +708,8 @@ class Transaction:
 
         # create transaction digest -- note double hashing
         tx_digest = hashlib.sha256(hashlib.sha256(tx_for_signing).digest()).digest()
+
+        print("Tx digest: ", tx_digest.hex())
 
         return tx_digest
 

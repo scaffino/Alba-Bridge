@@ -4,14 +4,20 @@ pragma experimental ABIEncoderV2;
 import "hardhat/console.sol";
 import "./ECDSA.sol";
 import "./BTC.sol";
+import "./BTCUtils.sol";
 import "./SECP256K1.sol";
+import "./BTCUtils.sol";
+
+// TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
+
+// N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
 
 library ParseBTCLib {
 
     struct LightningHTLCData {
         uint value;
-        bytes32 pk1;
-        bytes32 pk2;
+        bytes32 pk1; // V
+        bytes32 pk2; // P
         bytes32 rev_secret;
     }
 
@@ -45,7 +51,7 @@ library ParseBTCLib {
         bytes s;
     }
 
-    function getOutputsData(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
+    function getOutputsDataLNB(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
 
         LightningHTLCData memory htlc;
         OpReturnData memory opreturn;
@@ -90,10 +96,48 @@ library ParseBTCLib {
         return (htlc, p2pkh, opreturn);
     }
 
+    function getOutputsData_2(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory) {
+
+        LightningHTLCData memory htlc;
+        P2PKHData memory p2pkh;
+        ExtractOutputAux memory out_aux;
+
+        out_aux.pos = 4;
+
+        (out_aux.input_script_lens, out_aux.pos) = BTC.scanInputs(_txBytes, out_aux.pos, 0);
+
+        (out_aux.output_values, out_aux.script_starts, out_aux.output_script_lens, out_aux.pos) = BTC.scanOutputs(_txBytes, out_aux.pos, 0);
+
+        {
+            for (uint i = 0; i < 2; i++) {
+                if (i==0) {
+                    (htlc.pk1, htlc.rev_secret, htlc.pk2) = BTC.parseOutputScriptHTLC(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    htlc.value = out_aux.output_values[i];
+                }
+                else if (i == 1) {
+                    p2pkh.pkhash = BTC.sliceBytes20(abi.encodePacked(BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i])),0);
+                    p2pkh.value = out_aux.output_values[i];
+                }
+            }
+        }
+
+        /*
+        console.log("Check value_output_1:", htlc.value);
+        console.log("Check pk1_Output1:", BytesLib.toHexString(uint(htlc.pk1), 32));
+        console.log("Check rev_sec:", BytesLib.toHexString(uint(htlc.rev_secret), 32));
+        console.log("Check pk2_Output1:", BytesLib.toHexString(uint(htlc.pk2), 32));
+
+        console.log("Check value_output_2:", p2pkh.value);
+        console.log("Check script_data_2:", BytesLib.toHexString(p2pkh.pkhash));   
+        */
+
+        return (htlc, p2pkh);
+    }
+
     function getTimelock(bytes memory _txBytes) internal pure returns(bytes4) {
         uint256 rawTxSize = _txBytes.length;
         //console.log("Tx Size: ", rawTxSize);
-        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4))));
+        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-4, uint256(4))));
         //console.log("Timelock: ", BytesLib.toHexString(timelock));
         return timelock;
     }
@@ -161,12 +205,14 @@ library ParseBTCLib {
         //Check this https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format
     }
 
-
     function getSignature(bytes memory _txBytes) internal pure returns(Signature memory) {
 
         Signature memory sig;
 
-        sig.v = 27;
+        // extract signature 
+        // 27 - 0x1B = first key with even y
+        // 28 - 0x1C = first key with odd y
+        sig.v = 27; 
         sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
 
         if (_txBytes[42] == 0x47) { 
@@ -174,8 +220,6 @@ library ParseBTCLib {
         } else if (_txBytes[42] == 0x46) {
             sig.r = BTC.sliceBytes31(_txBytes, 47);
         }
-
-        //console.log("Signature r: ", BytesLib.toHexString(uint256(bytes32(sig.r)), 32));
 
         return sig;
 }
@@ -194,5 +238,17 @@ library ParseBTCLib {
         return abi.encodePacked(x, y);
     }
 
-}
+    function getTxDigest(bytes memory _txBytes, bytes memory fundingTxLockingScript, bytes memory sighash) internal pure returns (bytes32) {
 
+        //console.log(_txBytes.length);
+        bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
+        bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
+        //console.logBytes(chunk2);
+        bytes memory message = bytes.concat(chunk1, fundingTxLockingScript, chunk2, sighash);
+        /* console.log("message");
+        console.logBytes(message); */
+        bytes32 digest = BTCUtils.hash256(message);
+        return digest;
+        
+    }
+}

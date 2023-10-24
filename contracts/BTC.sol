@@ -383,16 +383,16 @@ library BTC {
              internal pure returns (bytes32)
     {
         if (isP2PKH(txBytes, pos, script_len)) {
-            console.log("Parsed P2PKH output");
+            //console.log("Parsed P2PKH output");
             return (sliceBytes20(txBytes, pos + 3));
         } else if (isP2SH(txBytes, pos, script_len)) {
-            console.log("Parsed P2SH output");
+            //console.log("Parsed P2SH output");
             return (sliceBytes20(txBytes, pos + 2));
         } else if (isOPRETURN(txBytes, pos, script_len)) {
-            console.log("Parsed OP_RETURN output");
+            //console.log("Parsed OP_RETURN output");
             return (sliceBytes32(txBytes, pos + 2));
         } else if (isLightningHTLC(txBytes, pos, script_len)) {
-            console.log("Parsed LightningHTLC output");
+            //console.log("Parsed LightningHTLC output");
             return (sliceBytes32(txBytes, pos + 2));
         } else {
             return bytes32(0);
@@ -403,7 +403,7 @@ library BTC {
              internal pure returns (bytes32, bytes32, bytes32)
     {
         if (isLightningHTLC(txBytes, pos, script_len)) {
-            console.log("Parsed LightningHTLC output");
+            //console.log("Parsed LightningHTLC output");
             //note: Compressed public keys are 33 bytes, consisting of a prefix either 0x02 or 0x03, and a 256-bit integer called x
             return (sliceBytes32(txBytes, pos + 3), sliceBytes32(txBytes, pos + 40), sliceBytes32(txBytes, pos + 76));
         } else {

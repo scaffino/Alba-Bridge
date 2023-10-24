@@ -15,20 +15,45 @@ describe("LNBridge", function(account) {
 
     });
 
-    describe("Test LNBridge", function () {
+    describe("Test Setup", function () {
 
-        it("Test Setup", async function () {
-         let tx = await LNBridge.setup(testdata.fundingTxId, testdata.pkProver, testdata.pkVerifier, testdata.index, testdata.timestamp);
-         const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
-        }) 
+        it("Populate Setup", async function () {
+            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkProver, testdata.pkVerifierUnprefixedUncompressed, testdata.pkVerifier, testdata.index, testdata.timestamp);
+            const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+           }) 
+    });
+
+    describe("Test SubmitProof", function () {
 
         it("Test SubmitProof", async function () {
             /* let tx = await LNBridge.submitProof(testdata.CT_P_withVsig, testdata.CT_V_withPsig);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash); */
 
-            const isProofValid = await LNBridge.submitProof(testdata.CT_P_withVsig, testdata.CT_V_withPsig);
+            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkProver, testdata.pkVerifierUnprefixedUncompressed, testdata.pkVerifier, testdata.index, testdata.timestamp);
+
+            const isProofValid = await LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked);
             expect(isProofValid).to.equal(true);
-           }) 
+        }) 
+
+        it("Revert if P's transaction is locked", async function () {
+
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Commitment transaction of P is locked");
+        })
+        
+        it("Revert if V's transaction is locked", async function () {
+
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Locked)).to.be.revertedWith("Commitment transaction of V is locked");
+        })
+
+        it("Revert if P's commitment transaction does not hardcode V's revocation key", async function () {
+
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked_WrongRevSecret, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("P's commitment transaction does not hardcode V's revocation key");
+        })
+
+        /* it("Revert if the pk in P's unlocked commitment transaction (p2pkh output) is not Prover's one", async function () {
+
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Locked_WrongP2pkh, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("The pk in P's unlocked commitment transaction (p2pkh output) is not Prover's one");
+        }) */
 
     });
 

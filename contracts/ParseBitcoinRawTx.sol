@@ -10,6 +10,10 @@ import "./BTCUtils.sol";
 
 // TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
 
+// TODO GIULIA: not extracting the timelock form lightning HTLC - shall we extract it? 
+
+// N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
+
 contract ParseBitcoinRawTx {
 
     struct LightningHTLCData {
@@ -49,7 +53,7 @@ contract ParseBitcoinRawTx {
         bytes s;
     }
 
-    function getOutputsData(bytes memory _txBytes) external view returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
+    function getOutputsDataLNB(bytes memory _txBytes) external view returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
 
         LightningHTLCData memory htlc;
         OpReturnData memory opreturn;
@@ -94,10 +98,48 @@ contract ParseBitcoinRawTx {
         return (htlc, p2pkh, opreturn);
     }
 
+    function getOutputsData_2(bytes memory _txBytes) external view returns(LightningHTLCData memory, P2PKHData memory) {
+
+        LightningHTLCData memory htlc;
+        P2PKHData memory p2pkh;
+        ExtractOutputAux memory out_aux;
+
+        out_aux.pos = 4;
+
+        (out_aux.input_script_lens, out_aux.pos) = BTC.scanInputs(_txBytes, out_aux.pos, 0);
+
+        (out_aux.output_values, out_aux.script_starts, out_aux.output_script_lens, out_aux.pos) = BTC.scanOutputs(_txBytes, out_aux.pos, 0);
+
+        {
+            for (uint i = 0; i < 2; i++) {
+                if (i==0) {
+                    (htlc.pk1, htlc.rev_secret, htlc.pk2) = BTC.parseOutputScriptHTLC(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i]);
+                    htlc.value = out_aux.output_values[i];
+                }
+                else if (i == 1) {
+                    p2pkh.pkhash = BTC.sliceBytes20(abi.encodePacked(BTC.parseOutputScript(_txBytes, out_aux.script_starts[i], out_aux.output_script_lens[i])),0);
+                    p2pkh.value = out_aux.output_values[i];
+                }
+            }
+        }
+
+        /*
+        console.log("Check value_output_1:", htlc.value);
+        console.log("Check pk1_Output1:", BytesLib.toHexString(uint(htlc.pk1), 32));
+        console.log("Check rev_sec:", BytesLib.toHexString(uint(htlc.rev_secret), 32));
+        console.log("Check pk2_Output1:", BytesLib.toHexString(uint(htlc.pk2), 32));
+
+        console.log("Check value_output_2:", p2pkh.value);
+        console.log("Check script_data_2:", BytesLib.toHexString(p2pkh.pkhash));   
+        */
+
+        return (htlc, p2pkh);
+    }
+
     function getTimelock(bytes memory _txBytes) external view returns(bytes4) {
         uint256 rawTxSize = _txBytes.length;
         //console.log("Tx Size: ", rawTxSize);
-        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-5, uint256(4))));
+        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-4, uint256(4))));
         //console.log("Timelock: ", BytesLib.toHexString(timelock));
         return timelock;
     }
@@ -196,11 +238,17 @@ contract ParseBitcoinRawTx {
         return abi.encodePacked(x, y);
     }
 
-    function getTxDigest(bytes memory _txBytes) external view returns (bytes32) {
+    function getTxDigest(bytes memory _txBytes, bytes memory fundingTxLockingScript, bytes memory sighash) external view returns (bytes32) {
 
-        bytes32 digest = BTCUtils.hash256(bytes(_txBytes));
+        //console.log(_txBytes.length);
+        bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
+        bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
+        //console.logBytes(chunk2);
+        bytes memory message = bytes.concat(chunk1, fundingTxLockingScript, chunk2, sighash);
+        /* console.log("message");
+        console.logBytes(message); */
+        bytes32 digest = BTCUtils.hash256(message);
         return digest;
         
     }
 }
-

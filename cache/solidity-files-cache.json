@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTC.sol": {
-      "lastModificationDate": 1697721347846,
-      "contentHash": "448d51783bb61873a277636b26316eb6",
+      "lastModificationDate": 1698154926723,
+      "contentHash": "b07bd7c78c653b22693d2b1cadd2e739",
       "sourceName": "contracts/BTC.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -78,8 +78,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1698050284812,
-      "contentHash": "d6ab064337e664dcde5785d3da2aafa2",
+      "lastModificationDate": 1698166375204,
+      "contentHash": "861fc54596429af501b888ae461e539a",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -109,7 +109,9 @@
         "./ECDSA.sol",
         "./BTC.sol",
         "./SECP256K1.sol",
-        "./ParseBTCLib.sol"
+        "./ParseBTCLib.sol",
+        "./BytesLib.sol",
+        "./BTCUtils.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -411,8 +413,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBitcoinRawTx.sol": {
-      "lastModificationDate": 1698075808993,
-      "contentHash": "58911d50428baefaf9047b9102b34ef8",
+      "lastModificationDate": 1698163730589,
+      "contentHash": "41e558f90e1d490d3e6e0a44e79bac48",
       "sourceName": "contracts/ParseBitcoinRawTx.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -453,8 +455,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
-      "lastModificationDate": 1697792719990,
-      "contentHash": "1d32cc0b08093704b04cea137bb61e49",
+      "lastModificationDate": 1698166405065,
+      "contentHash": "a8bd0e8937322639043db5102cd095cd",
       "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -483,7 +485,9 @@
         "hardhat/console.sol",
         "./ECDSA.sol",
         "./BTC.sol",
-        "./SECP256K1.sol"
+        "./BTCUtils.sol",
+        "./SECP256K1.sol",
+        "./BTCUtils.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
