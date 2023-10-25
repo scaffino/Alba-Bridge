@@ -8,8 +8,6 @@ import "./BTCUtils.sol";
 import "./SECP256K1.sol";
 import "./BTCUtils.sol";
 
-// TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
-
 // N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
 
 library ParseBTCLib {
@@ -135,11 +133,11 @@ library ParseBTCLib {
     }
 
     function getTimelock(bytes memory _txBytes) internal pure returns(bytes4) {
-        uint256 rawTxSize = _txBytes.length;
+        //uint256 rawTxSize = _txBytes.length;
         //console.log("Tx Size: ", rawTxSize);
-        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-4, uint256(4))));
+        //bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4))));
         //console.log("Timelock: ", BytesLib.toHexString(timelock));
-        return timelock;
+        return bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4)));
     }
 
     function getInputsData(bytes memory _txBytes) internal pure returns(Input memory) {
@@ -159,34 +157,33 @@ library ParseBTCLib {
         return input;
     }
 
-    function getSignatures(bytes memory _txBytes) internal pure returns(Signature memory, Signature memory) {
+    function getSignatures(bytes memory _txBytes) internal pure returns(Signature[2] memory) {
 
-        Signature memory sigP;
-        Signature memory sigV;
+        Signature[2] memory sig;
 
         // extract signature of V
-        sigV.v = 27;
-        sigV.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+        sig[1].v = 27;
+        sig[1].s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
 
         if (_txBytes[42] == 0x47) { 
-            sigV.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
+            sig[1].r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
         } else if (_txBytes[42] == 0x46) {
-            sigV.r = BTC.sliceBytes31(_txBytes, 47);
+            sig[1].r = BTC.sliceBytes31(_txBytes, 47);
         }
 
         // extract signature of P
-        sigP.v = 27; 
-        sigP.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 152));
+        sig[0].v = 27; 
+        sig[0].s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 152));
 
         if (_txBytes[114] == 0x47) { 
-            sigP.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 119));
+            sig[0].r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 119));
         } else if (_txBytes[114] == 0x46) {
-            sigP.r = BTC.sliceBytes31(_txBytes, 119);
+            sig[0].r = BTC.sliceBytes31(_txBytes, 119);
         }
 
         //console.log("this is pos 114 ", BytesLib.toHexString(uint256(uint8(_txBytes[114])), 1));
 
-        return (sigP, sigV);
+        return sig;
 
 
         /////////////
@@ -246,14 +243,14 @@ library ParseBTCLib {
     function getTxDigest(bytes memory _txBytes, bytes memory fundingTxLockingScript, bytes memory sighash) internal pure returns (bytes32) {
 
         //console.log(_txBytes.length);
-        bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
-        bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
+        //bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
+        //bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
         //console.logBytes(chunk2);
-        bytes memory message = bytes.concat(chunk1, fundingTxLockingScript, chunk2, sighash);
+        bytes memory message = bytes.concat(BytesLib.slice(_txBytes, 0, 41), fundingTxLockingScript, BytesLib.slice(_txBytes, 114, (_txBytes.length)-114), sighash);
         /* console.log("message");
         console.logBytes(message); */
-        bytes32 digest = BTCUtils.hash256(message);
-        return digest;
+        //bytes32 digest = BTCUtils.hash256(message);
+        return BTCUtils.hash256(message);
         
     }
 }

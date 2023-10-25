@@ -9,7 +9,7 @@ import "./ParseBTCLib.sol";
 import "./BytesLib.sol";
 import "./BTCUtils.sol";
 
-// TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
+// TODO GIULIA: extract timelock from LightningHTLC
 
 contract LNBridge {
 
@@ -30,7 +30,16 @@ contract LNBridge {
 
     BridgeInstance public bridge;
 
-    function setup(bytes32 _fundingTxId, bytes memory _fundingTx_script, bytes4 _fundingTx_index, bytes memory _sighash, bytes memory _pkProver_Uncompressed, bytes memory _pkProver_Compressed, bytes memory _pkVerifier_Uncompressed, bytes memory _pkVerifier_Compressed, uint256 _index, uint _timelock) external {
+    function setup(bytes32 _fundingTxId, 
+                   bytes memory _fundingTx_script, 
+                   bytes4 _fundingTx_index, 
+                   bytes memory _sighash, 
+                   bytes memory _pkProver_Uncompressed, 
+                   bytes memory _pkProver_Compressed, 
+                   bytes memory _pkVerifier_Uncompressed, 
+                   bytes memory _pkVerifier_Compressed, 
+                   uint256 _index, 
+                   uint _timelock) external {
 
         bridge.fundingTxId = _fundingTxId;
         bridge.fundingTx_script = _fundingTx_script;
@@ -44,7 +53,8 @@ contract LNBridge {
         bridge.timelock = _timelock;
     }
 
-    function submitProof(bytes memory CT_P_unlocked, bytes memory CT_V_unlocked) external view returns(bool) {
+    function submitProof(bytes memory CT_P_unlocked, 
+                         bytes memory CT_V_unlocked) external view returns(bool) {
 
         // check transactions are not locked
         require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "Commitment transaction of P is locked");
@@ -52,9 +62,7 @@ contract LNBridge {
 
         // check transactions are well formed
         ParseBTCLib.LightningHTLCData[2] memory lightningHTLC;
-        //ParseBTCLib.LightningHTLCData memory lightningHTLC_V;
         ParseBTCLib.P2PKHData[2] memory p2pkh; 
-        //ParseBTCLib.P2PKHData memory p2pkh_V;
         ParseBTCLib.OpReturnData memory opreturn;
         (lightningHTLC[0], p2pkh[0], opreturn) = ParseBTCLib.getOutputsDataLNB(CT_P_unlocked); //note: the p2pkh_P is the p2pkh belonging in P's commitment transaction, but holds the public key of V
         (lightningHTLC[1], p2pkh[1]) = ParseBTCLib.getOutputsDataLN(CT_V_unlocked); //note: the p2pkh_V is the p2pkh belonging in V's commitment transaction, but holds the public key of P
@@ -72,20 +80,20 @@ contract LNBridge {
         require(ParseBTCLib.getInputsData(CT_V_unlocked).txid == bridge.fundingTxId, "V's commitment transaction does not spend the funding transaction");
         require(ParseBTCLib.getInputsData(CT_P_unlocked).inputIndex == bridge.fundingTx_index, "P's commitment transaction does not spend the funding transaction output (wrong index)");
         require(ParseBTCLib.getInputsData(CT_V_unlocked).inputIndex == bridge.fundingTx_index, "V's commitment transaction does not spend the funding transaction output (wrong index)");
-
+ 
         //retrieve signatures
-        ParseBTCLib.Signature memory sigV = ParseBTCLib.getSignature(CT_P_unlocked);
-        ParseBTCLib.Signature memory sigP = ParseBTCLib.getSignature(CT_V_unlocked);
+        ParseBTCLib.Signature[2] memory sig;
+        sig[1] = ParseBTCLib.getSignature(CT_P_unlocked); // sig V
+        sig[0] = ParseBTCLib.getSignature(CT_V_unlocked); // sig P
 
         //verify signatures
         // TODO GIULIA: create tests
-        bytes32 digestP =  ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash);
-        bytes memory pkV = ParseBTCLib.verifyBTCSignature(uint256(digestP), uint8(sigV.v), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0)); // unprefixed uncompressed key v = 28
-        require(sha256(pkV) == sha256(bridge.pkVerifier_Uncompressed));
+        bytes32[2] memory digest;
+        digest[0] =  ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
+        require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
 
-        bytes32 digestV = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash);
-        bytes memory pkP = ParseBTCLib.verifyBTCSignature(uint256(digestV), uint8(sigP.v), BytesLib.toUint256(sigP.r,0), BytesLib.toUint256(sigP.s,0)); // unprefixed uncompressed key v = 27
-        require(sha256(pkP) == sha256(bridge.pkProver_Uncompressed));
+        digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash);
+        require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
 
         return true;
 

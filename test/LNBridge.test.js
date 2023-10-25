@@ -26,8 +26,6 @@ describe("LNBridge", function(account) {
     describe("Test SubmitProof", function () {
 
         it("Test SubmitProof", async function () {
-            /* let tx = await LNBridge.submitProof(testdata.CT_P_withVsig, testdata.CT_V_withPsig);
-            const receipt = await ethers.provider.getTransactionReceipt(tx.hash); */
 
             let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkProver, testdata.pkVerifierUnprefixedUncompressed, testdata.pkVerifier, testdata.index, testdata.timestamp);
 
