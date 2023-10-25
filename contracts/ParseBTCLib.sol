@@ -96,7 +96,7 @@ library ParseBTCLib {
         return (htlc, p2pkh, opreturn);
     }
 
-    function getOutputsData_2(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory) {
+    function getOutputsDataLN(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory) {
 
         LightningHTLCData memory htlc;
         P2PKHData memory p2pkh;

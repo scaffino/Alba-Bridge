@@ -17,6 +17,7 @@ contract LNBridge {
     struct BridgeInstance {
         bytes32 fundingTxId;
         bytes fundingTx_script;
+        bytes4 fundingTx_index;
         bytes sighash;
         bytes pkProver_Uncompressed; 
         bytes pkProver_Compressed; 
@@ -29,10 +30,11 @@ contract LNBridge {
 
     BridgeInstance public bridge;
 
-    function setup(bytes32 _fundingTxId, bytes memory _fundingTx_script, bytes memory _sighash, bytes memory _pkProver_Uncompressed, bytes memory _pkProver_Compressed, bytes memory _pkVerifier_Uncompressed, bytes memory _pkVerifier_Compressed, uint256 _index, uint _timelock) external {
+    function setup(bytes32 _fundingTxId, bytes memory _fundingTx_script, bytes4 _fundingTx_index, bytes memory _sighash, bytes memory _pkProver_Uncompressed, bytes memory _pkProver_Compressed, bytes memory _pkVerifier_Uncompressed, bytes memory _pkVerifier_Compressed, uint256 _index, uint _timelock) external {
 
         bridge.fundingTxId = _fundingTxId;
         bridge.fundingTx_script = _fundingTx_script;
+        bridge.fundingTx_index = _fundingTx_index;
         bridge.sighash = _sighash;
         bridge.pkProver_Uncompressed = _pkProver_Uncompressed;
         bridge.pkProver_Compressed = _pkProver_Compressed;
@@ -49,20 +51,27 @@ contract LNBridge {
         require(ParseBTCLib.getTimelock(CT_V_unlocked) == bytes4(0), "Commitment transaction of V is locked");
 
         // check transactions are well formed
-        ParseBTCLib.LightningHTLCData memory lightningHTLC_P;
-        ParseBTCLib.LightningHTLCData memory lightningHTLC_V;
-        ParseBTCLib.P2PKHData memory p2pkh_P; 
-        ParseBTCLib.P2PKHData memory p2pkh_V;
+        ParseBTCLib.LightningHTLCData[2] memory lightningHTLC;
+        //ParseBTCLib.LightningHTLCData memory lightningHTLC_V;
+        ParseBTCLib.P2PKHData[2] memory p2pkh; 
+        //ParseBTCLib.P2PKHData memory p2pkh_V;
         ParseBTCLib.OpReturnData memory opreturn;
-        (lightningHTLC_P, p2pkh_P, opreturn) = ParseBTCLib.getOutputsDataLNB(CT_P_unlocked); //note: the p2pkh_P is the p2pkh belonging in P's commitment transaction, but holds the public key of V
-        (lightningHTLC_V, p2pkh_V) = ParseBTCLib.getOutputsData_2(CT_V_unlocked); //note: the p2pkh_V is the p2pkh belonging in V's commitment transaction, but holds the public key of P
+        (lightningHTLC[0], p2pkh[0], opreturn) = ParseBTCLib.getOutputsDataLNB(CT_P_unlocked); //note: the p2pkh_P is the p2pkh belonging in P's commitment transaction, but holds the public key of V
+        (lightningHTLC[1], p2pkh[1]) = ParseBTCLib.getOutputsDataLN(CT_V_unlocked); //note: the p2pkh_V is the p2pkh belonging in V's commitment transaction, but holds the public key of P
 
-        require(opreturn.data == lightningHTLC_V.rev_secret, "P's commitment transaction does not hardcode V's revocation key");
+        require(opreturn.data == lightningHTLC[1].rev_secret, "P's commitment transaction does not hardcode V's revocation key");
          // TODO GIULIA: do test cases for the require below
-        require(p2pkh_P.value == lightningHTLC_V.value, "Amount mismatch between p2pkh of P and lightning HTLC of V");
-        require(lightningHTLC_P.value == p2pkh_V.value, "Amount mismatch between p2pkh of V and lightning HTLC of P");
-        require(sha256(BTCUtils.hash160(bridge.pkVerifier_Compressed)) == sha256(abi.encodePacked(p2pkh_P.pkhash)), "The p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one");
-        require(sha256(BTCUtils.hash160(bridge.pkProver_Compressed)) == sha256(abi.encodePacked(p2pkh_V.pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
+        require(p2pkh[0].value == lightningHTLC[1].value, "Amount mismatch between p2pkh of P and lightning HTLC of V");
+        require(lightningHTLC[0].value == p2pkh[1].value, "Amount mismatch between p2pkh of V and lightning HTLC of P");
+        require(sha256(BTCUtils.hash160(bridge.pkVerifier_Compressed)) == sha256(abi.encodePacked(p2pkh[0].pkhash)), "The p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one");
+        require(sha256(BTCUtils.hash160(bridge.pkProver_Compressed)) == sha256(abi.encodePacked(p2pkh[1].pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
+
+        // check transactions spend the funding transaction
+        // TODO GIULIA: create tests
+        require(ParseBTCLib.getInputsData(CT_P_unlocked).txid == bridge.fundingTxId, "P's commitment transaction does not spend the funding transaction");
+        require(ParseBTCLib.getInputsData(CT_V_unlocked).txid == bridge.fundingTxId, "V's commitment transaction does not spend the funding transaction");
+        require(ParseBTCLib.getInputsData(CT_P_unlocked).inputIndex == bridge.fundingTx_index, "P's commitment transaction does not spend the funding transaction output (wrong index)");
+        require(ParseBTCLib.getInputsData(CT_V_unlocked).inputIndex == bridge.fundingTx_index, "V's commitment transaction does not spend the funding transaction output (wrong index)");
 
         //retrieve signatures
         ParseBTCLib.Signature memory sigV = ParseBTCLib.getSignature(CT_P_unlocked);

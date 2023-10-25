@@ -32,7 +32,7 @@ describe("ParseBitcoinRawTx", function() {
         })
 
         it("Verify function getOutputsData correctly extracts output data from V's unlocked commitment transaction", async function () {
-            const returnedValues = await ParseBitcoinRawTx.getOutputsData_2(testdata.new_CT_V_unlocked);
+            const returnedValues = await ParseBitcoinRawTx.getOutputsDataLN(testdata.new_CT_V_unlocked);
             const htlc = returnedValues[0];
             const p2pkh = returnedValues[1];
             const opreturn = returnedValues[2];
