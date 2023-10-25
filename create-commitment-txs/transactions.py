@@ -704,12 +704,12 @@ class Transaction:
         # It is converted to 1 byte before serializing to send to the network
         tx_for_signing += struct.pack("<i", sighash)
 
-        print("Tx for signing: ", tx_for_signing.hex())
+        #print("Tx for signing: ", tx_for_signing.hex())
 
         # create transaction digest -- note double hashing
         tx_digest = hashlib.sha256(hashlib.sha256(tx_for_signing).digest()).digest()
 
-        print("Tx digest: ", tx_digest.hex())
+        #print("Tx digest: ", tx_digest.hex())
 
         return tx_digest
 

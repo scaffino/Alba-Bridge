@@ -209,16 +209,21 @@ library ParseBTCLib {
 
         Signature memory sig;
 
-        // extract signature 
-        // 27 - 0x1B = first key with even y
-        // 28 - 0x1C = first key with odd y
-        sig.v = 27; 
-        sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+        // extract signature
 
         if (_txBytes[42] == 0x47) { 
             sig.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
         } else if (_txBytes[42] == 0x46) {
             sig.r = BTC.sliceBytes31(_txBytes, 47);
+        }
+
+        sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+
+        // https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
+        if (BytesLib.toUint256(sig.r,0) % 2 == 0) { // 28 - 0x1C = first key with odd y 
+            sig.v = 28;
+        } else {
+            sig.v = 27; // 27 - 0x1B = first key with even y
         }
 
         return sig;
