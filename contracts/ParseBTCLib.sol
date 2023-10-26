@@ -49,6 +49,11 @@ library ParseBTCLib {
         bytes s;
     }
 
+    struct CompressedPK {
+        bytes pk1;
+        bytes pk2;
+    }
+
     function getOutputsDataLNB(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
 
         LightningHTLCData memory htlc;
@@ -252,5 +257,13 @@ library ParseBTCLib {
         //bytes32 digest = BTCUtils.hash256(message);
         return BTCUtils.hash256(message);
         
+    }
+
+    function extractCompressedPK(bytes memory _fundingScript) internal pure returns (CompressedPK memory) {
+
+        CompressedPK memory pks;
+        pks.pk1 = BytesLib.slice(_fundingScript, 2, 33);
+        pks.pk2 = BytesLib.slice(_fundingScript, 37, 33);
+        return pks;
     }
 }

@@ -241,14 +241,16 @@ contract ParseBitcoinRawTx {
     function getTxDigest(bytes memory _txBytes, bytes memory fundingTxLockingScript, bytes memory sighash) external view returns (bytes32) {
 
         //console.log(_txBytes.length);
-        bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
-        bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
         //console.logBytes(chunk2);
-        bytes memory message = bytes.concat(chunk1, fundingTxLockingScript, chunk2, sighash);
+        bytes memory message = bytes.concat(BytesLib.slice(_txBytes, 0, 41), fundingTxLockingScript, BytesLib.slice(_txBytes, 114, (_txBytes.length)-114), sighash);
         /* console.log("message");
         console.logBytes(message); */
-        bytes32 digest = BTCUtils.hash256(message);
-        return digest;
+        //bytes32 digest = BTCUtils.hash256(message);
+        return BTCUtils.hash256(message);
         
+    }
+
+    function extractCompressedPK(bytes memory _fundingScript) external view returns (bytes memory, bytes memory) {
+        return (BytesLib.slice(_fundingScript, 2, 33), BytesLib.slice(_fundingScript, 37, 33));
     }
 }

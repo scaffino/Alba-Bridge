@@ -118,6 +118,15 @@ describe("ParseBitcoinRawTx", function() {
 
         })
 
+        it("Extract pk keys from funding transaction script", async function () {
+
+            const pks = await ParseBitcoinRawTx.extractCompressedPK(testdata.fundingTx_LockingScript);
+            expect(pks[0]).to.equal(testdata.pkProver);
+            expect(pks[1]).to.equal(testdata.pkVerifier);
+
+        })
+        
+
     });
 
 })

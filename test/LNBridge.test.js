@@ -18,16 +18,16 @@ describe("LNBridge", function(account) {
     describe("Test Setup", function () {
 
         it("Populate Setup", async function () {
-            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkProver, testdata.pkVerifierUnprefixedUncompressed, testdata.pkVerifier, testdata.index, testdata.timestamp);
+            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
-           }) 
+        }) 
     });
 
     describe("Test SubmitProof", function () {
 
         it("Test SubmitProof", async function () {
 
-            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkProver, testdata.pkVerifierUnprefixedUncompressed, testdata.pkVerifier, testdata.index, testdata.timestamp);
+            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed);
 
             const isProofValid = await LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked);
             expect(isProofValid).to.equal(true);
@@ -51,7 +51,7 @@ describe("LNBridge", function(account) {
         /* it("Revert if the pk in P's unlocked commitment transaction (p2pkh output) is not Prover's one", async function () {
 
             await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Locked_WrongP2pkh, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("The pk in P's unlocked commitment transaction (p2pkh output) is not Prover's one");
-        }) */
+        }) */ 
 
     });
 

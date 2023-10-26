@@ -648,6 +648,8 @@ class Transaction:
         # get the correct transaction digest (which is then signed)
         tmp_tx.inputs[txin_index].script_sig = script
 
+        #print(script)
+
         #
         # by default we sign all inputs/outputs (SIGHASH_ALL is used)
         #
