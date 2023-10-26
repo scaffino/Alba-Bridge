@@ -8,8 +8,6 @@ import "./BTCUtils.sol";
 import "./SECP256K1.sol";
 import "./BTCUtils.sol";
 
-// TODO GIULIA: convert console.log into console.logBytes and console.logBytes32 when necessary
-
 // TODO GIULIA: not extracting the timelock form lightning HTLC - shall we extract it? 
 
 // N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
@@ -137,11 +135,8 @@ contract ParseBitcoinRawTx {
     }
 
     function getTimelock(bytes memory _txBytes) external view returns(bytes4) {
-        uint256 rawTxSize = _txBytes.length;
-        //console.log("Tx Size: ", rawTxSize);
-        bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, rawTxSize-4, uint256(4))));
-        //console.log("Timelock: ", BytesLib.toHexString(timelock));
-        return timelock;
+        return bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4)));
+
     }
 
     function getInputsData(bytes memory _txBytes) external view returns(Input memory) {
@@ -210,15 +205,21 @@ contract ParseBitcoinRawTx {
     function getSignature(bytes memory _txBytes) external view returns(Signature memory) {
 
         Signature memory sig;
-
-        // extract signature of V
-        sig.v = 27;
-        sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
-
+        // R
         if (_txBytes[42] == 0x47) { 
             sig.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
         } else if (_txBytes[42] == 0x46) {
             sig.r = BTC.sliceBytes31(_txBytes, 47);
+        }
+        // S
+        sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
+
+        // V
+        // https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
+        if (BytesLib.toUint256(sig.r,0) % 2 == 0) { // 28 - 0x1C = first key with odd y 
+            sig.v = 28;
+        } else {
+            sig.v = 27; // 27 - 0x1B = first key with even y
         }
 
         return sig;

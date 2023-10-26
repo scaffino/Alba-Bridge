@@ -11,6 +11,10 @@ module.exports = {
       runs: 20000,
     },
   },
+  gasReporter: {
+    currency: 'CHF',
+    gasPrice: 21
+  },
   allowUnlimitedContractSize: true,
   solidity: {
     compilers: [

@@ -138,10 +138,6 @@ library ParseBTCLib {
     }
 
     function getTimelock(bytes memory _txBytes) internal pure returns(bytes4) {
-        //uint256 rawTxSize = _txBytes.length;
-        //console.log("Tx Size: ", rawTxSize);
-        //bytes4 timelock = (bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4))));
-        //console.log("Timelock: ", BytesLib.toHexString(timelock));
         return bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4)));
     }
 
@@ -210,17 +206,16 @@ library ParseBTCLib {
     function getSignature(bytes memory _txBytes) internal pure returns(Signature memory) {
 
         Signature memory sig;
-
-        // extract signature
-
+        // R
         if (_txBytes[42] == 0x47) { 
             sig.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
         } else if (_txBytes[42] == 0x46) {
             sig.r = BTC.sliceBytes31(_txBytes, 47);
         }
-
+        // S
         sig.s = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 81));
 
+        // V
         // https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
         if (BytesLib.toUint256(sig.r,0) % 2 == 0) { // 28 - 0x1C = first key with odd y 
             sig.v = 28;
@@ -246,24 +241,13 @@ library ParseBTCLib {
     }
 
     function getTxDigest(bytes memory _txBytes, bytes memory fundingTxLockingScript, bytes memory sighash) internal pure returns (bytes32) {
-
-        //console.log(_txBytes.length);
-        //bytes memory chunk1 = BytesLib.slice(_txBytes, 0, 41);
-        //bytes memory chunk2 = BytesLib.slice(_txBytes, 114, (_txBytes.length)-114);
-        //console.logBytes(chunk2);
         bytes memory message = bytes.concat(BytesLib.slice(_txBytes, 0, 41), fundingTxLockingScript, BytesLib.slice(_txBytes, 114, (_txBytes.length)-114), sighash);
-        /* console.log("message");
-        console.logBytes(message); */
-        //bytes32 digest = BTCUtils.hash256(message);
         return BTCUtils.hash256(message);
         
     }
 
-    function extractCompressedPK(bytes memory _fundingScript) internal pure returns (CompressedPK memory) {
-
-        CompressedPK memory pks;
-        pks.pk1 = BytesLib.slice(_fundingScript, 2, 33);
-        pks.pk2 = BytesLib.slice(_fundingScript, 37, 33);
-        return pks;
+    //this function extracts the compressed public key from the funding transaction scriptPubKey
+    function extractCompressedPK(bytes memory _fundingScript) internal pure returns (bytes memory, bytes memory) {
+        return (BytesLib.slice(_fundingScript, 2, 33), BytesLib.slice(_fundingScript, 37, 33));
     }
-}
+} 
