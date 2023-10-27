@@ -73,7 +73,6 @@ contract LNBridge {
         (lightningHTLC[1], p2pkh[1]) = ParseBTCLib.getOutputsDataLN(CT_V_unlocked); //note: the p2pkh_V is the p2pkh belonging in V's commitment transaction, but holds the public key of P
 
         require(opreturn.data == lightningHTLC[1].rev_secret, "P's commitment transaction does not hardcode V's revocation key");
-         // TODO GIULIA: do test cases for the require below
         require(p2pkh[0].value == lightningHTLC[1].value, "Amount mismatch between p2pkh of P and lightning HTLC of V");
         require(lightningHTLC[0].value == p2pkh[1].value, "Amount mismatch between p2pkh of V and lightning HTLC of P");
 
@@ -82,7 +81,6 @@ contract LNBridge {
         require(sha256(BTCUtils.hash160(pk1)) == sha256(abi.encodePacked(p2pkh[1].pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
 
         // check transactions spend the funding transaction ()
-        // TODO GIULIA: create tests
         require(ParseBTCLib.getInputsData(CT_P_unlocked).txid == bridge.fundingTxId, "P's commitment transaction does not spend the funding transaction");
         require(ParseBTCLib.getInputsData(CT_V_unlocked).txid == bridge.fundingTxId, "V's commitment transaction does not spend the funding transaction");
  
@@ -92,27 +90,38 @@ contract LNBridge {
         sig[0] = ParseBTCLib.getSignature(CT_V_unlocked); // sig P
 
         //verify signatures
-        // TODO GIULIA: create tests
         bytes32[2] memory digest;
         digest[0] =  ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
         require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
 
         digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
         require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
+
+        // TODO GIULIA: extract state and save it 
  
         state.validProofSubmitted = true;
 
     }
 
-    function dispute(bytes memory rawTxP_locked, bytes memory sigV, bytes memory rawTxV_unlocked, bytes memory sigP) external {
+    function dispute(bytes memory CT_P_locked, 
+                     bytes memory CT_V_unlocked) external {
+
+        // TODO GIULIA: check current time is larger than timelock defined in setup phase
+
        
     }
 
-    function resolveDispute(bytes memory oldRevSecret, bytes memory rawTxP_unlocked, bytes memory sigV) external {
+    // resolve valid dispute raised by P: V submits the unlocked version of the transaction
+    function resolveValidDispute(bytes memory CT_P_unlocked) external {
        
     }
 
-    function settle() external {
+    // resolve invalid dispute raised by P: V provides the revocation secret for that proves P opened the dispute with an old state
+    function resolveInvalidDispute(bytes memory revSecret) external {
+       
+    }
+
+    function settle() external payable {
        
     }
 
