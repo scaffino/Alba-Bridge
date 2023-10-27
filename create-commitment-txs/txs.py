@@ -58,7 +58,7 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
         #tx_out3 = TxOutput(0, op_return_script_id) 
 
         if locked:
-            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "16997891")
+            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "407a6c65") # timelock is Sun Dec 03 2023 12:53:20 GMT+0000 -> I had to flip bytes: UNIX timestamp is 1701608000 -> 656C7A40 -> 407a6c65
         else:
             tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2])
 
@@ -67,7 +67,7 @@ def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
         if locked:
-            tx = Transaction([tx_in], [tx_out0, tx_out1], "16997891")
+            tx = Transaction([tx_in], [tx_out0, tx_out1], "70ab6f65")
         else:
             tx = Transaction([tx_in], [tx_out0, tx_out1])
     

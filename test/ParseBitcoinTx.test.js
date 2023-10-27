@@ -62,7 +62,7 @@ describe("ParseBitcoinRawTx", function() {
 
         it("Verify timelock is correctly extracted: no timelock", async function () {
             const timelock = await ParseBitcoinRawTx.getTimelock(testdata.new_CT_P_unlocked);
-            expect(timelock).to.equal("0x00000000");
+            expect(timelock).to.equal("0x00000000"); 
         }) 
 
         /*

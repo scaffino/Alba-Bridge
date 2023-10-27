@@ -141,6 +141,11 @@ library ParseBTCLib {
         return bytes4(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4)));
     }
 
+    function getTxTimelock(bytes memory _txBytes) internal pure returns(uint32) {
+        // watchout: need to flip bytes! Also, check this out: https://bitcoin.stackexchange.com/questions/41933/if-bitcoin-time-value-is-4-bytes-is-that-unix-time-from-1970
+        return BytesLib.toUint32(BytesLib.flipBytes(BytesLib.slice(_txBytes, _txBytes.length-4, uint256(4))),0); 
+    }
+
     function getInputsData(bytes memory _txBytes) internal pure returns(Input memory) {
 
         Input memory input;
@@ -151,7 +156,7 @@ library ParseBTCLib {
 
         require(input.number_of_inputs == 1, "Tx has too many inputs (>1)");
         
-        //console.log("inputIndex: ", BytesLib.toHexString(inputIndex));
+        //console.log("inputIndex: ", BytesLib.toHexString(inputIndex));  
         //console.log("txid: ", BytesLib.toHexString(uint(txid), 32));
         //console.log("number_of_inputs: ", number_of_inputs);
         

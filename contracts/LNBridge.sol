@@ -9,7 +9,7 @@ import "./ParseBTCLib.sol";
 import "./BytesLib.sol";
 import "./BTCUtils.sol";
 
-// TODO GIULIA: extract timelock from LightningHTLC
+// This contract is used by Prover P and verifier V to verify on Ethereum the current state of their Lightning payment channel 
 
 contract LNBridge {
 
@@ -23,12 +23,12 @@ contract LNBridge {
         bytes sighash;
         bytes pkProver_Uncompressed; 
         bytes pkVerifier_Uncompressed;
-        //uint256 index;
-        uint256 timelock; //October 18th, 00.00
-        uint256 timelock_dispute; //to be used
+        uint256 timelock; //timelock is 1701817200, i.e., Tue Dec 05 2023 23:00:00 GMT+0000. 
+        uint256 timelock_dispute; //relative timelock 
     }
 
     struct BridgeState {
+        bool setupDone;
         bool validProofSubmitted;
         bool disputeOpened;
         bool disputeClosedP;
@@ -66,12 +66,14 @@ contract LNBridge {
         state.disputeOpened = false;
         state.disputeClosedP = false;
         state.disputeClosedV = false;
+        state.setupDone = true;
     }
 
     function submitProof(bytes memory CT_P_unlocked, 
                          bytes memory CT_V_unlocked) external {
-                        
-        if (block.timestamp < bridge.timelock) {
+
+        // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
+        if (block.timestamp < bridge.timelock && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
 
             // check transactions are not locked
             require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "Commitment transaction of P is locked");
@@ -92,7 +94,7 @@ contract LNBridge {
             require(sha256(BTCUtils.hash160(pk2)) == sha256(abi.encodePacked(p2pkh[0].pkhash)), "The p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one");
             require(sha256(BTCUtils.hash160(pk1)) == sha256(abi.encodePacked(p2pkh[1].pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
 
-            // check transactions spend the funding transaction ()
+            // check transactions spend the funding transaction 
             require(ParseBTCLib.getInputsData(CT_P_unlocked).txid == bridge.fundingTxId, "P's commitment transaction does not spend the funding transaction");
             require(ParseBTCLib.getInputsData(CT_V_unlocked).txid == bridge.fundingTxId, "V's commitment transaction does not spend the funding transaction");
     
@@ -109,8 +111,11 @@ contract LNBridge {
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
 
-            // TODO GIULIA: extract state and save it 
+            // update and store balances
+            balanceDistr.balP = lightningHTLC[0].value;
+            balanceDistr.balV = lightningHTLC[1].value;
     
+            // update state of the protocol
             state.validProofSubmitted = true;
 
             emit stateEvent("Proof successfully verified: state.validProofSubmitted = true", state.validProofSubmitted);
@@ -118,38 +123,61 @@ contract LNBridge {
         } else {
 
             emit stateEvent("Proof submitted too late: state.validProofSubmitted = false", state.validProofSubmitted);
-            console.log(state.validProofSubmitted);
         } 
     }
 
     function dispute(bytes memory CT_P_locked, 
                      bytes memory CT_V_unlocked) external {
 
-        // TODO GIULIA: check current time is larger than timelock defined in setup phase
+        // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
+        if (block.timestamp < bridge.timelock && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
+            
+            // check commitment transaction of P is locked and commitment transaction of V is unlocked
+            // TODO GIULIA: need to change timelock to the locked tx and run tests with it. timelock is already updated in python
+            require(ParseBTCLib.getTxTimelock(CT_P_locked) > bridge.timelock + bridge.timelock_dispute, "Commitment transaction of P is unlocked or timelock of the timelocked Tx is smaller or equal than Timelock T + Relative Timelock T_rel"); 
+            require(ParseBTCLib.getTxTimelock(CT_V_unlocked) == uint32(0), "Commitment transaction of V is locked"); 
 
-        // check commitment transaction of P is locked and commitment transaction of V is unlocked
-        require(ParseBTCLib.getTimelock(CT_P_locked) != bytes4(0), "Commitment transaction of P is unlocked"); // TODO GIULIA: need to check until when it is locked
-        require(ParseBTCLib.getTimelock(CT_V_unlocked) == bytes4(0), "Commitment transaction of V is locked");
+            // check transactions are well formed
+            ParseBTCLib.LightningHTLCData[2] memory lightningHTLC;
+            ParseBTCLib.P2PKHData[2] memory p2pkh; 
+            ParseBTCLib.OpReturnData memory opreturn;
+            (lightningHTLC[0], p2pkh[0], opreturn) = ParseBTCLib.getOutputsDataLNB(CT_P_locked); //note: the p2pkh_P is the p2pkh belonging in P's commitment transaction, but holds the public key of V
+            (lightningHTLC[1], p2pkh[1]) = ParseBTCLib.getOutputsDataLN(CT_V_unlocked); //note: the p2pkh_V is the p2pkh belonging in V's commitment transaction, but holds the public key of P
+            require(opreturn.data == lightningHTLC[1].rev_secret, "P's commitment transaction does not hardcode V's revocation key");
+            require(p2pkh[0].value == lightningHTLC[1].value, "Amount mismatch between p2pkh of P and lightning HTLC of V");
+            require(lightningHTLC[0].value == p2pkh[1].value, "Amount mismatch between p2pkh of V and lightning HTLC of P"); 
 
+            (bytes memory pk1, bytes memory pk2) = ParseBTCLib.extractCompressedPK(bridge.fundingTx_script);
+            require(sha256(BTCUtils.hash160(pk2)) == sha256(abi.encodePacked(p2pkh[0].pkhash)), "The p2pkh in P's locked commitment transaction does not correspond to Verifier's one");
+            require(sha256(BTCUtils.hash160(pk1)) == sha256(abi.encodePacked(p2pkh[1].pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
 
-        //retrieve signatures
-        ParseBTCLib.Signature[2] memory sig;
-        sig[1] = ParseBTCLib.getSignature(CT_P_locked); // sig V
-        sig[0] = ParseBTCLib.getSignature(CT_V_unlocked); // sig P
+            // check transactions spend the funding transaction 
+            require(ParseBTCLib.getInputsData(CT_P_locked).txid == bridge.fundingTxId, "P's commitment transaction does not spend the funding transaction");
+            require(ParseBTCLib.getInputsData(CT_V_unlocked).txid == bridge.fundingTxId, "V's commitment transaction does not spend the funding transaction");
 
-        //verify signatures
-        bytes32[2] memory digest;
-        digest[0] =  ParseBTCLib.getTxDigest(CT_P_locked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
-        require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
+            //retrieve signatures
+            ParseBTCLib.Signature[2] memory sig;
+            sig[1] = ParseBTCLib.getSignature(CT_P_locked); // sig V
+            sig[0] = ParseBTCLib.getSignature(CT_V_unlocked); // sig P
 
-        digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
-        require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
+            //verify signatures
+            bytes32[2] memory digest;
+            digest[0] =  ParseBTCLib.getTxDigest(CT_P_locked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
+            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
 
-        // TODO GIULIA: extract state and save it 
- 
-        state.disputeOpened = true;
+            digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
+            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");  
 
-       
+            // TODO GIULIA: extract state and save it 
+    
+            state.disputeOpened = true;
+
+            emit stateEvent("Dispute successfully opened: state.disputeOpened = true", state.disputeOpened); 
+
+        } else {
+
+            emit stateEvent("Dispute not opened: state.disputeOpened = false", state.disputeOpened);
+        } 
     }
 
     // resolve valid dispute raised by P: V submits the unlocked version of the transaction
@@ -163,6 +191,20 @@ contract LNBridge {
     }
 
     function settle() external payable {
+
+        // TODO GIULIA: after writing functions above, check this and do tests
+
+        if (state.validProofSubmitted == true) {
+            // distribute funds IN THE CONTRACT according to mapping
+        } else if (state.disputeOpened == true && (state.disputeClosedP == false && state.disputeClosedV == false)) {
+            // dispute has not been closed: give all funds in the contract to prover
+        } else if (state.disputeOpened == true && (state.disputeClosedP == true )) {
+            // distribute funds IN THE CONTRACT according to mapping
+        } else if (state.disputeOpened == true && (state.disputeClosedV == true )) {
+            // dispute was opened with an old state: give all funds in the contract to verifier
+        } else if (state.setupDone == true && state.disputeOpened == false && (state.disputeOpened == false )) {
+            // nobody submitted nothing: distribute funds according to inital state (give back to P and V the amount they contributed with)
+        }
        
     }
 

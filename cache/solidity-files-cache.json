@@ -298,8 +298,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
-      "lastModificationDate": 1698311654320,
-      "contentHash": "cf8102887a3e1d07df4f3d09bc0ebd79",
+      "lastModificationDate": 1698415956665,
+      "contentHash": "5ca1caaeda0b4d6c5a7bd7a4bee80b76",
       "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -340,8 +340,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1698396728864,
-      "contentHash": "e191951aedabef8fc2fa680b75f2ebcd",
+      "lastModificationDate": 1698416471789,
+      "contentHash": "31b5c9eabe329a1f0f614619a3be3bdc",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",

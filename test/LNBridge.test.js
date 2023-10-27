@@ -138,12 +138,37 @@ describe("LNBridge", function(account) {
 
     });
 
-    /* describe("Test Dispute", function () {
+    describe("Test Dispute", function () {
 
         it("Call Dispute", async function () {
-            let tx = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_P_withVsig_Unlocked);
-            const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock);
+
+            let tx = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
         }) 
-    }); */
+
+        /* it("Check timelocked Tx has timelock larger than Timelock T + Relative Timelock T_rel", async function () {
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock);
+
+            await expect(LNBridge.dispute(testdata.CT_P_withVsig_LockedWithSmallTimelock, testdata.CT_P_withVsig_Unlocked)).to.be.revertedWith("Commitment transaction of P is unlocked or timelock of the timelocked Tx is smaller or equal than Timelock T + Relative Timelock T_rel");
+        })  */
+
+        it("Revert if verification of signature of P failed", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock);
+
+            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withWrongPsig_Unlocked)).to.be.revertedWith("Invalid signature of P over commitment transaction of V");
+
+        }) 
+
+        it("Revert if verification of signature of V failed", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock);
+
+            await expect(LNBridge.dispute(testdata.CT_P_withWrongVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over commitment transaction of P");
+        }) 
+
+
+    });
 
 })
