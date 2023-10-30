@@ -91,17 +91,17 @@ print("")
 # P is owner and V is punisher. Secret_rev is from P (V knows it)
 ct_P_locked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=True)
 
-ct_V_locked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=True)
+#ct_V_locked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=True)
 
-ct_P_unlocked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
+#ct_P_unlocked = txs.get_LNBridge_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
 
-ct_V_unlocked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=False)
+#ct_V_unlocked = txs.get_standard_ct(TxInput('c6e5450bde373444ed0f7b9ef44044fff6c8ca16be46a6bbfcebdf09e1a8bfd7', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=False)
 
 print("Comm TX P locked: ", ct_P_locked.serialize())
 print("")
-print("Comm TX V locked: ", ct_V_locked.serialize())
+#print("Comm TX V locked: ", ct_V_locked.serialize())
 print("")
-print("Comm TX P unlocked: ", ct_P_unlocked.serialize()) 
+#print("Comm TX P unlocked: ", ct_P_unlocked.serialize()) 
 
 
 
@@ -109,7 +109,7 @@ print("Comm TX P unlocked: ", ct_P_unlocked.serialize())
 # 0200000001d7bfa8e109dfebfcbba646be16cac8f6ff4440f49e7b0fed443437de0b45e5c6000000008f473044022048afcdf24b0cf4a217ae273a9af6ed8491387db916cd6acf59ea394624568bb402204c1f796a30664d83e3b41b657fbf4606839689c1e9469684a4488d3b2176fc3501463043021f5cc217d9d40529ec0b23cac32785fae592e410d297dccd216478dcdfe9807f0220025add493d2b34740a3ad4a4abe35a8d4f1a7ca3f23b987c9c3867fb22c4c37f01ffffffff0356220000000000007276210313f17fa639f9cf2108e9dc9a14df8a9d5b9f1df1a91efe3d2830e08edd71e182ac6375aa2069e38cf1ba4b8d4ba92944fc38de10bacab9b32a7e78bb57cd72f598e035149e8867210240602913fbabf074554d1db1c9a108978167734826e36bddfb8830852de2137fad52b275685156220000000000001976a914c0d90b19a448b569bd0cc77b3da2dd5bb41d2c9f88ac0000000000000000226a20f0f0427c47433d9d440fc105e7d61d1520b5c889ac6405596362fdce95658a3500000000
 
 print("")
-print("Comm TX V unlocked: ", ct_V_unlocked.serialize())
+#print("Comm TX V unlocked: ", ct_V_unlocked.serialize())
 
 ######### Useful Websites #########
 

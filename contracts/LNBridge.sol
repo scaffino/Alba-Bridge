@@ -11,6 +11,8 @@ import "./BTCUtils.sol";
 
 // This contract is used by Prover P and verifier V to verify on Ethereum the current state of their Lightning payment channel 
 
+// TODO GIULIA: create mapping between money in the channel and money in the contract
+
 contract LNBridge {
 
     event stateEvent(string label, bool stateStatus);
@@ -35,14 +37,15 @@ contract LNBridge {
         bool disputeClosedV;
     }
 
-    struct BalanceDistribution {
+    struct Storage {
         uint balP;
         uint balV;
+        bytes32 revKey;
     }
 
     BridgeInstance public bridge;
-    BridgeState public state;
-    BalanceDistribution public balanceDistr;
+    BridgeState public state;    
+    Storage public contractStorage;
 
     function setup(bytes32 _fundingTxId, 
                    bytes memory _fundingTx_script, 
@@ -52,6 +55,8 @@ contract LNBridge {
                    bytes memory _pkVerifier_Uncompressed, 
                    uint256 _timelock, 
                    uint256 _timelock_dispute) external {
+        
+        // TODO GIULIA: we need signatures of P and V over the bridge state
 
         bridge.fundingTxId = _fundingTxId;
         bridge.fundingTx_script = _fundingTx_script;
@@ -112,8 +117,8 @@ contract LNBridge {
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
 
             // update and store balances
-            balanceDistr.balP = lightningHTLC[0].value;
-            balanceDistr.balV = lightningHTLC[1].value;
+            contractStorage.balP = lightningHTLC[0].value;
+            contractStorage.balV = lightningHTLC[1].value;
     
             // update state of the protocol
             state.validProofSubmitted = true;
@@ -133,7 +138,6 @@ contract LNBridge {
         if (block.timestamp < bridge.timelock && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
             
             // check commitment transaction of P is locked and commitment transaction of V is unlocked
-            // TODO GIULIA: need to change timelock to the locked tx and run tests with it. timelock is already updated in python
             require(ParseBTCLib.getTxTimelock(CT_P_locked) > bridge.timelock + bridge.timelock_dispute, "Commitment transaction of P is unlocked or timelock of the timelocked Tx is smaller or equal than Timelock T + Relative Timelock T_rel"); 
             require(ParseBTCLib.getTxTimelock(CT_V_unlocked) == uint32(0), "Commitment transaction of V is locked"); 
 
@@ -168,8 +172,13 @@ contract LNBridge {
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");  
 
-            // TODO GIULIA: extract state and save it 
+            // update and store balances
+            contractStorage.balP = lightningHTLC[0].value;
+            contractStorage.balV = lightningHTLC[1].value;
+            // store also the revocation key of P for resolveInvalidDispute
+            contractStorage.revKey = lightningHTLC[0].rev_secret;
     
+            // update state of the protocol
             state.disputeOpened = true;
 
             emit stateEvent("Dispute successfully opened: state.disputeOpened = true", state.disputeOpened); 
@@ -182,11 +191,51 @@ contract LNBridge {
 
     // resolve valid dispute raised by P: V submits the unlocked version of the transaction
     function resolveValidDispute(bytes memory CT_P_unlocked) external {
-       
+
+        if (block.timestamp < (bridge.timelock + bridge.timelock_dispute) && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)) {
+
+            // check transaction is not locked
+            require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "Commitment transaction of P is locked");
+
+            // check it has valid signature of V
+            ParseBTCLib.Signature memory sigV = ParseBTCLib.getSignature(CT_P_unlocked); // sig V
+            bytes32 digest = ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
+            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
+
+            // TODO GIULIA: update balances after having done the mapping
+        
+            // update state of the protocol
+            state.disputeClosedP = true;
+
+            emit stateEvent("Resolve Valid Dispute successfully executed: state.disputeClosedP = true", state.disputeClosedP);
+
+        } else {
+
+            emit stateEvent("Resolve Valid Dispute failed: state.disputeClosedP = false", state.disputeClosedP);
+        } 
     }
 
     // resolve invalid dispute raised by P: V provides the revocation secret for that proves P opened the dispute with an old state
-    function resolveInvalidDispute(bytes memory revSecret) external {
+    function resolveInvalidDispute(string memory revSecret) external {
+
+        if (block.timestamp < (bridge.timelock + bridge.timelock_dispute) 
+            && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)
+            && contractStorage.revKey == sha256(abi.encodePacked(sha256(bytes(revSecret))))) {
+
+            // update and store balances: all money go to V
+            // TODO GIULIA: to check after creating mapping for money in the contract and money in the channel
+            contractStorage.balP = 0;
+            contractStorage.balV = 1;
+
+            // update state of the protocol
+            state.disputeClosedV = true;
+
+            emit stateEvent("Resolve Invalid Dispute successfully executed: state.disputeClosedV = true", state.disputeClosedV);
+
+        } else {
+
+            emit stateEvent("Resolve Invalid Dispute failed: state.disputeClosedV = false", state.disputeClosedV);
+        } 
        
     }
 

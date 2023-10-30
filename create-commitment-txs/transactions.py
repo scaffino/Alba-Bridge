@@ -711,7 +711,7 @@ class Transaction:
         # create transaction digest -- note double hashing
         tx_digest = hashlib.sha256(hashlib.sha256(tx_for_signing).digest()).digest()
 
-        #print("Tx digest: ", tx_digest.hex())
+        print("Tx digest: ", tx_digest.hex())
 
         return tx_digest
 
