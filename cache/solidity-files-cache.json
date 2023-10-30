@@ -148,8 +148,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBitcoinRawTx.sol": {
-      "lastModificationDate": 1698311744387,
-      "contentHash": "9d8dc8c52006584e78e3f4cd24d121a4",
+      "lastModificationDate": 1698676076729,
+      "contentHash": "5ea9b9123d0b68c9c4fa96ce17314486",
       "sourceName": "contracts/ParseBitcoinRawTx.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -176,11 +176,9 @@
       },
       "imports": [
         "hardhat/console.sol",
-        "./ECDSA.sol",
         "./BTC.sol",
         "./BTCUtils.sol",
-        "./SECP256K1.sol",
-        "./BTCUtils.sol"
+        "./SECP256K1.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -298,8 +296,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
-      "lastModificationDate": 1698657731207,
-      "contentHash": "5ca1caaeda0b4d6c5a7bd7a4bee80b76",
+      "lastModificationDate": 1698676040940,
+      "contentHash": "f07b4a6f1cd35504127d38c2f31eabf7",
       "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -326,11 +324,9 @@
       },
       "imports": [
         "hardhat/console.sol",
-        "./ECDSA.sol",
         "./BTC.sol",
         "./BTCUtils.sol",
-        "./SECP256K1.sol",
-        "./BTCUtils.sol"
+        "./SECP256K1.sol"
       ],
       "versionPragmas": [
         "^0.8.9"
@@ -340,8 +336,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1698675569201,
-      "contentHash": "51b867bc4430e518aeadfe4fc7bfc5ec",
+      "lastModificationDate": 1698675931463,
+      "contentHash": "1a64936653e6527962cc36058dfb4799",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -368,9 +364,6 @@
       },
       "imports": [
         "hardhat/console.sol",
-        "./ECDSA.sol",
-        "./BTC.sol",
-        "./SECP256K1.sol",
         "./ParseBTCLib.sol",
         "./BytesLib.sol",
         "./BTCUtils.sol"

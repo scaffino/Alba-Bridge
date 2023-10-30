@@ -2,9 +2,6 @@ pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
-import "./ECDSA.sol";
-import "./BTC.sol";
-import "./SECP256K1.sol";
 import "./ParseBTCLib.sol";
 import "./BytesLib.sol";
 import "./BTCUtils.sol";
@@ -56,7 +53,6 @@ contract LNBridge {
     mapping(address => uint256) balancesETH;
 
     uint balDistrConst;
-
 
     address prover;
     address verifier;

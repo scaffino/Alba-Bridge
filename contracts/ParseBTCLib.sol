@@ -2,11 +2,10 @@ pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
-import "./ECDSA.sol";
 import "./BTC.sol";
 import "./BTCUtils.sol";
 import "./SECP256K1.sol";
-import "./BTCUtils.sol";
+
 
 // N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
 
