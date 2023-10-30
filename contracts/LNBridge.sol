@@ -11,8 +11,6 @@ import "./BTCUtils.sol";
 
 // This contract is used by Prover P and verifier V to verify on Ethereum the current state of their Lightning payment channel 
 
-// TODO GIULIA: create mapping between money in the channel and money in the contract
-
 contract LNBridge {
 
     event stateEvent(string label, bool stateStatus);
@@ -31,6 +29,7 @@ contract LNBridge {
     }
 
     struct BridgeState {
+        bool coinsLocked;
         bool setupDone;
         bool validProofSubmitted;
         bool disputeOpened;
@@ -38,24 +37,55 @@ contract LNBridge {
         bool disputeClosedV;
     }
 
-    struct Storage {
-        uint balP;
-        uint balV;
+    struct StoragePC {
+        uint balP; // this is the balance in the payment channel
+        uint balV; // this is the balance in the payment channel
         bytes32 revKey;
     }
 
-    // A mapping is a key/value map. Here we store each Ethereum account's balance.
-    mapping(address => uint256) balancesETH;
+    struct InitialBalancesETH {
+        uint balP;
+        uint balV;
+    }
 
     BridgeInstance public bridge;
     BridgeState public state;    
-    Storage public contractStorage;
+    StoragePC public contractStoragePC;
+    InitialBalancesETH public initBal;
 
+    mapping(address => uint256) balancesETH;
+
+    uint balDistrConst;
+
+
+    address prover;
+    address verifier;
+
+    constructor(address _prover, address _verifier) {
+        prover = _prover; 
+        verifier = _verifier; 
+    } 
+
+    // TODO GIULIA: do tests
     receive() external payable {
 
         // React to receiving ether
-        balancesETH[msg.sender] = msg.value; 
-        emit lockCoinsEvent(msg.sender, msg.value);
+        if (msg.sender == prover) {
+            balancesETH[msg.sender] = msg.value; 
+            initBal.balP = balancesETH[prover];
+            state.coinsLocked = true;
+            emit lockCoinsEvent(msg.sender, msg.value);
+
+        } else if (msg.sender == verifier) {
+            balancesETH[msg.sender] = msg.value;
+            initBal.balV = balancesETH[verifier];
+            state.coinsLocked = true;
+
+            emit lockCoinsEvent(msg.sender, msg.value);
+        }
+        else {
+            emit stateEvent("Failed to lock coins: msg.sender is not P nor V", state.coinsLocked);
+        }
 
     } 
 
@@ -66,10 +96,12 @@ contract LNBridge {
                    bytes memory _pkProver_Uncompressed, 
                    bytes memory _pkVerifier_Uncompressed, 
                    uint256 _timelock, 
-                   uint256 _timelock_dispute) external {
+                   uint256 _timelock_dispute,
+                   uint balConst) external {
         
         // TODO GIULIA: we need signatures of P and V over the bridge state
 
+        // populate protocol specifics
         bridge.fundingTxId = _fundingTxId;
         bridge.fundingTx_script = _fundingTx_script;
         bridge.fundingTx_index = _fundingTx_index;
@@ -79,6 +111,9 @@ contract LNBridge {
         bridge.timelock = _timelock;
         bridge.timelock_dispute = _timelock_dispute;
 
+        balDistrConst = balConst;
+
+        // populate state variables
         state.validProofSubmitted = false;
         state.disputeOpened = false;
         state.disputeClosedP = false;
@@ -90,7 +125,7 @@ contract LNBridge {
                          bytes memory CT_V_unlocked) external {
 
         // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
-        if (block.timestamp < bridge.timelock && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
+        if (block.timestamp < bridge.timelock && (state.coinsLocked == true && state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
 
             // check transactions are not locked
             require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "Commitment transaction of P is locked");
@@ -126,11 +161,9 @@ contract LNBridge {
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
 
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V"); 
+            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");             
 
-            // update and store balances
-            contractStorage.balP = lightningHTLC[0].value;
-            contractStorage.balV = lightningHTLC[1].value;
+            // TODO GIULIA: do a check on the channel balance: e.g., require the balance of P is higher than X -> just to have a meaningful reason for distributing coins in this contract
     
             // update state of the protocol
             state.validProofSubmitted = true;
@@ -147,7 +180,7 @@ contract LNBridge {
                      bytes memory CT_V_unlocked) external {
 
         // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
-        if (block.timestamp < bridge.timelock && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
+        if (block.timestamp < bridge.timelock && (state.coinsLocked == true && state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == false)) {
             
             // check commitment transaction of P is locked and commitment transaction of V is unlocked
             require(ParseBTCLib.getTxTimelock(CT_P_locked) > bridge.timelock + bridge.timelock_dispute, "Commitment transaction of P is unlocked or timelock of the timelocked Tx is smaller or equal than Timelock T + Relative Timelock T_rel"); 
@@ -184,11 +217,11 @@ contract LNBridge {
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");  
 
-            // update and store balances
-            contractStorage.balP = lightningHTLC[0].value;
-            contractStorage.balV = lightningHTLC[1].value;
+            // store balances
+            contractStoragePC.balP = lightningHTLC[0].value;
+            contractStoragePC.balV = lightningHTLC[1].value;
             // store also the revocation key of P for resolveInvalidDispute
-            contractStorage.revKey = lightningHTLC[0].rev_secret;
+            contractStoragePC.revKey = lightningHTLC[0].rev_secret;
     
             // update state of the protocol
             state.disputeOpened = true;
@@ -204,7 +237,7 @@ contract LNBridge {
     // resolve valid dispute raised by P: V submits the unlocked version of the transaction
     function resolveValidDispute(bytes memory CT_P_unlocked) external {
 
-        if (block.timestamp < (bridge.timelock + bridge.timelock_dispute) && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)) {
+        if (block.timestamp < (bridge.timelock + bridge.timelock_dispute) && (state.coinsLocked == true && state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)) {
 
             // check transaction is not locked
             require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "Commitment transaction of P is locked");
@@ -214,7 +247,7 @@ contract LNBridge {
             bytes32 digest = ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
             require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
 
-            // TODO GIULIA: update balances after having done the mapping
+            // TODO GIULIA: check that balance of the unlocked commitment transaction is the same of the locked one
         
             // update state of the protocol
             state.disputeClosedP = true;
@@ -231,13 +264,8 @@ contract LNBridge {
     function resolveInvalidDispute(string memory revSecret) external {
 
         if (block.timestamp < (bridge.timelock + bridge.timelock_dispute) 
-            && (state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)
-            && contractStorage.revKey == sha256(abi.encodePacked(sha256(bytes(revSecret))))) {
-
-            // update and store balances: all money go to V
-            // TODO GIULIA: to check after creating mapping for money in the contract and money in the channel
-            contractStorage.balP = 0;
-            contractStorage.balV = 1;
+            && (state.coinsLocked == true  && state.setupDone == true && state.validProofSubmitted == false && state.disputeOpened == true)
+            && contractStoragePC.revKey == sha256(abi.encodePacked(sha256(bytes(revSecret))))) {
 
             // update state of the protocol
             state.disputeClosedV = true;
@@ -251,22 +279,38 @@ contract LNBridge {
        
     }
 
+    // TODO GIULIA: do tests
     function settle() external payable {
 
-        // TODO GIULIA: after writing functions above, check this and do tests
+        if (state.validProofSubmitted == true || (state.disputeOpened == true && state.disputeClosedP == true)) {
 
-        if (state.validProofSubmitted == true) {
-            // distribute funds IN THE CONTRACT according to mapping
+            // distribute funds in the contract according to mapping
+            (bool sentP, bytes memory dataP) = prover.call{value: (balancesETH[prover] * balDistrConst)}("");
+            require(sentP, "Failed to send Ether");
+            (bool sentV, bytes memory dataV) = verifier.call{value: (balancesETH[verifier] * (1 - balDistrConst))}("");
+            require(sentV, "Failed to send Ether");
+
         } else if (state.disputeOpened == true && (state.disputeClosedP == false && state.disputeClosedV == false)) {
+
             // dispute has not been closed: give all funds in the contract to prover
-        } else if (state.disputeOpened == true && (state.disputeClosedP == true )) {
-            // distribute funds IN THE CONTRACT according to mapping
-        } else if (state.disputeOpened == true && (state.disputeClosedV == true )) {
+            (bool sentP, bytes memory dataP) = prover.call{value: (balancesETH[prover] + balancesETH[verifier])}("");
+            require(sentP, "Failed to send Ether");
+
+        } else if (state.disputeOpened == true && state.disputeClosedV == true ) {
+
             // dispute was opened with an old state: give all funds in the contract to verifier
-        } else if (state.setupDone == true && state.disputeOpened == false && (state.disputeOpened == false )) {
+            (bool sentV, bytes memory dataV) = verifier.call{value: (balancesETH[prover] + balancesETH[verifier])}("");
+            require(sentV, "Failed to send Ether");
+
+        } else if (state.coinsLocked == true && state.setupDone == false) {
+
             // nobody submitted nothing: distribute funds according to inital state (give back to P and V the amount they contributed with)
+            (bool sentP, bytes memory dataP) = prover.call{value: initBal.balP}("");
+            require(sentP, "Failed to send Ether");
+            (bool sentV, bytes memory dataV) = verifier.call{value: initBal.balV}("");
+            require(sentV, "Failed to send Ether");
+
         }
-       
     }
 
 }

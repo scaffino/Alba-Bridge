@@ -1,5 +1,6 @@
 {
     "timestamp": "1697580000",
+    "balanceDistributionConstant":"7",
     "index": "001",
     "pkProver": "0x0240602913fbabf074554d1db1c9a108978167734826e36bddfb8830852de2137f",
     "pkVerifier": "0x0313f17fa639f9cf2108e9dc9a14df8a9d5b9f1df1a91efe3d2830e08edd71e182",
