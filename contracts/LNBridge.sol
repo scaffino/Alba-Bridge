@@ -16,6 +16,7 @@ import "./BTCUtils.sol";
 contract LNBridge {
 
     event stateEvent(string label, bool stateStatus);
+    event lockCoinsEvent(address addr, uint amount);
 
     // define global variables for this contract instance (setup phase)
     struct BridgeInstance {
@@ -43,9 +44,20 @@ contract LNBridge {
         bytes32 revKey;
     }
 
+    // A mapping is a key/value map. Here we store each Ethereum account's balance.
+    mapping(address => uint256) balancesETH;
+
     BridgeInstance public bridge;
     BridgeState public state;    
     Storage public contractStorage;
+
+    receive() external payable {
+
+        // React to receiving ether
+        balancesETH[msg.sender] = msg.value; 
+        emit lockCoinsEvent(msg.sender, msg.value);
+
+    } 
 
     function setup(bytes32 _fundingTxId, 
                    bytes memory _fundingTx_script, 
@@ -258,4 +270,3 @@ contract LNBridge {
     }
 
 }
-

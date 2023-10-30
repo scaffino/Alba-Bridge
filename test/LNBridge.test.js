@@ -9,13 +9,28 @@ describe("LNBridge", function(account) {
     let LNBridge;
 
     beforeEach(async () => {
+
+        const [prover, verifier] = await ethers.getSigners(); // returns an array of addresses, I keep only the first two
+        const proverBalance = await ethers.provider.getBalance(prover.address); // 10000000000000000000000
+        const verifierBalance = await ethers.provider.getBalance(verifier.address); // 10000000000000000000000
+
         LNBridgeContractFactory = await ethers.getContractFactory("LNBridge");
         LNBridge = await LNBridgeContractFactory.deploy();
         await LNBridge.deployed();
 
+        await prover.sendTransaction({
+            to: LNBridge.address,
+            value: ethers.utils.parseEther("0.5"), // Sends 0.5 ether
+        });
+
+        await verifier.sendTransaction({
+            to: LNBridge.address,
+            value: ethers.utils.parseEther("0.5"), // Sends 0.5 ether
+        }); 
+
     });
 
-/*     describe("Call Setup", function () {
+     describe("Call Setup", function () {
 
         it("Populate Setup", async function () {
             let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock);
@@ -188,7 +203,7 @@ describe("LNBridge", function(account) {
             await expect(LNBridge.dispute(testdata.CT_P_withWrongVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over commitment transaction of P");
         }) 
 
-    }); */
+    }); 
 
     describe("Test ResolveValidDispute", function () {
 
