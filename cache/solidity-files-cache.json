@@ -301,8 +301,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1698762258951,
-      "contentHash": "20d0ed428e415ab8bf259f26142dd0db",
+      "lastModificationDate": 1698767961479,
+      "contentHash": "76dc2b3b64f56a8d94d4e651c8a571fc",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",

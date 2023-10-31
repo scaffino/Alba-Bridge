@@ -62,7 +62,6 @@ contract LNBridge {
         verifier = _verifier; 
     } 
 
-    // TODO GIULIA: do tests
     receive() external payable {
 
         // React to receiving ether
@@ -222,14 +221,14 @@ contract LNBridge {
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+1), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+2), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+3), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
-            ), "Invalid signature of V over commitment transaction of P"); 
+            ), "Invalid signature of V over commitment transaction of P");   
 
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
             require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+1), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+2), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+3), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
-            ), "Invalid signature of P over commitment transaction of V");  
+            ), "Invalid signature of P over commitment transaction of V");   
 
             // store balances
             contractStoragePC.balP = lightningHTLC[0].value;
