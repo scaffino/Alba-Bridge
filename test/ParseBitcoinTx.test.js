@@ -107,7 +107,7 @@ describe("ParseBitcoinRawTx", function() {
         it("Extract tx digest from P's raw transaction", async function () {
 
             const digest = await ParseBitcoinRawTx.getTxDigest(testdata.CT_P_withVsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all);
-            expect(digest).to.equal("0x0ecbf461785be2b7eef7c0b8391f97065e488ec69edde0eabbe49036e88a3c9d"); // new digest
+            expect(digest).to.equal("0x8b2bb9663013661e4405e37374ed3c6f9c50dea2c0a31f6a475e8f78c5964a6e"); // new digest
 
         })
 

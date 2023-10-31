@@ -12,8 +12,8 @@ describe("LNBridge", function(account) {
 
         // create identities for Prover and Verifier
         const [prover, verifier] = await ethers.getSigners(); // returns an array of addresses, I keep only the first two
-        const proverBalance = await ethers.provider.getBalance(prover.address); // 10000000000000000000000
-        const verifierBalance = await ethers.provider.getBalance(verifier.address); // 10000000000000000000000
+        //const proverBalance = await ethers.provider.getBalance(prover.address); // 10000000000000000000000
+        //const verifierBalance = await ethers.provider.getBalance(verifier.address); // 10000000000000000000000
 
         LNBridgeContractFactory = await ethers.getContractFactory("LNBridge");
         LNBridge = await LNBridgeContractFactory.deploy(prover.address, verifier.address);
@@ -33,12 +33,63 @@ describe("LNBridge", function(account) {
 
     });
 
-     describe("Call Setup", function () {
+    describe("Call Setup", function () {
 
         it("Populate Setup", async function () {
             let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.balanceDistributionConstant);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
         }) 
+    }); 
+
+    describe("Call Receive", async () => {
+
+        it("Should emit event lockCoinsEvent(address addr, uint amount) when coins are successfully deposited", async function () {
+
+            const [prover, verifier] = await ethers.getSigners();
+
+            const initialBalance = await ethers.provider.getBalance(LNBridge.address)
+
+            // Send Ether to the contract using a simple Ether transfer
+            const amountToSend = ethers.utils.parseEther("0.1")
+            await prover.sendTransaction({ to: LNBridge.address, value: amountToSend })
+            await verifier.sendTransaction({ to: LNBridge.address, value: amountToSend })
+
+            // Check if the contract's balance increased by the sent amount
+            const finalBalance = await ethers.provider.getBalance(LNBridge.address)
+            const totalAmountSent = ethers.utils.parseEther("0.2")
+            expect(finalBalance).to.equal(initialBalance.add(totalAmountSent))
+
+            // Check if the Log event was emitted with the correct data
+            const logs = await LNBridge.queryFilter("lockCoinsEvent")
+            expect(logs.length).to.equal(4)
+            // I pick the third event, as the first two are emitted in the BeforeEach at the beginning
+            const logP = logs[2]
+            expect(logP.args.label).to.equal("Coins locked by P!")
+            expect(logP.args.addr).to.equal(prover.address)
+            expect(logP.args.amount).to.equal(ethers.utils.parseEther("0.1"))
+            // I pick the fourth event
+            const logV = logs[3]
+            expect(logV.args.label).to.equal("Coins locked by V!")
+            expect(logV.args.addr).to.equal(verifier.address)
+            expect(logV.args.amount).to.equal(ethers.utils.parseEther("0.1"))
+
+        })
+
+        it("Should emit event Failed to lock coins: msg.sender is not P nor V", async function () {
+
+            const [prover, verifier, other] = await ethers.getSigners();
+
+            const amountToSend = ethers.utils.parseEther("0.1")
+            await other.sendTransaction({ to: LNBridge.address, value: amountToSend })
+
+            // Check if the Log event was emitted with the correct data
+            const logs = await LNBridge.queryFilter("stateEvent")
+            expect(logs.length).to.equal(1)
+            // I pick the third event, as the first two are emitted in the BeforeEach at the beginning
+            const logP = logs[0]
+            expect(logP.args.label).to.equal("Failed to lock coins: msg.sender is not P nor V")
+            expect(logP.args.stateStatus).to.equal(false)
+        })
     });
 
     describe("Test SubmitProof", function () {
@@ -152,7 +203,7 @@ describe("LNBridge", function(account) {
 
             await expect(LNBridge.submitProof(testdata.CT_P_withWrongVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over commitment transaction of P");
 
-        }) 
+        })  
 
     }); 
 
@@ -287,6 +338,6 @@ describe("LNBridge", function(account) {
             await expect(LNBridge.resolveInvalidDispute(testdata.WrongRevSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Invalid Dispute failed: state.disputeClosedV = false", false);
         }) 
 
-    });
+    });   
 
 })

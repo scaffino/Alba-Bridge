@@ -11,7 +11,7 @@ import "./BTCUtils.sol";
 contract LNBridge {
 
     event stateEvent(string label, bool stateStatus);
-    event lockCoinsEvent(address addr, uint amount);
+    event lockCoinsEvent(string label, address addr, uint amount);
 
     // define global variables for this contract instance (setup phase)
     struct BridgeInstance {
@@ -70,17 +70,17 @@ contract LNBridge {
             balancesETH[msg.sender] = msg.value; 
             initBal.balP = balancesETH[prover];
             state.coinsLocked = true;
-            emit lockCoinsEvent(msg.sender, msg.value);
+            emit lockCoinsEvent("Coins locked by P!", msg.sender, msg.value);
 
         } else if (msg.sender == verifier) {
             balancesETH[msg.sender] = msg.value;
             initBal.balV = balancesETH[verifier];
             state.coinsLocked = true;
 
-            emit lockCoinsEvent(msg.sender, msg.value);
+            emit lockCoinsEvent("Coins locked by V!", msg.sender, msg.value);
         }
         else {
-            emit stateEvent("Failed to lock coins: msg.sender is not P nor V", state.coinsLocked);
+            emit stateEvent("Failed to lock coins: msg.sender is not P nor V", false);
         }
 
     } 
@@ -153,11 +153,21 @@ contract LNBridge {
 
             //verify signatures
             bytes32[2] memory digest;
-            digest[0] =  ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
+            digest[0] =  ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P      
+            // https://bitcointalk.org/index.php?topic=5249677.0
+            // recid used to compute v is not necessary: just cycle through all the possible coordinate pairs and check if any of them match the signature. The recid just speeds up  verification.
+            require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || (sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+1), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed))
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+2), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+3), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            ), "Invalid signature of V over commitment transaction of P"); 
 
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");             
+            require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+1), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+2), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+3), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            ), "Invalid signature of P over commitment transaction of V");             
 
             // TODO GIULIA: do a check on the channel balance: e.g., require the balance of P is higher than X -> just to have a meaningful reason for distributing coins in this contract
     
@@ -207,11 +217,19 @@ contract LNBridge {
 
             //verify signatures
             bytes32[2] memory digest;
-            digest[0] =  ParseBTCLib.getTxDigest(CT_P_locked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
+            digest[0] =  ParseBTCLib.getTxDigest(CT_P_locked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P             
+            require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+1), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+2), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+3), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            ), "Invalid signature of V over commitment transaction of P"); 
 
             digest[1] = ParseBTCLib.getTxDigest(CT_V_unlocked, bridge.fundingTx_script, bridge.sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed), "Invalid signature of P over commitment transaction of V");  
+            require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+1), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+2), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+3), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(bridge.pkProver_Uncompressed)
+            ), "Invalid signature of P over commitment transaction of V");  
 
             // store balances
             contractStoragePC.balP = lightningHTLC[0].value;
@@ -241,7 +259,11 @@ contract LNBridge {
             // check it has valid signature of V
             ParseBTCLib.Signature memory sigV = ParseBTCLib.getSignature(CT_P_unlocked); // sig V
             bytes32 digest = ParseBTCLib.getTxDigest(CT_P_unlocked, bridge.fundingTx_script, bridge.sighash); // digest of commitment transaction of P 
-            require(sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed), "Invalid signature of V over commitment transaction of P"); 
+            require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+1), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+2), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed)
+            || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+3), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(bridge.pkVerifier_Uncompressed)), 
+            "Invalid signature of V over commitment transaction of P"); 
 
             // TODO GIULIA: check that balance of the unlocked commitment transaction is the same of the locked one
         

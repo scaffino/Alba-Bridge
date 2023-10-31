@@ -650,6 +650,7 @@ class Transaction:
 
         #print(script)
 
+
         #
         # by default we sign all inputs/outputs (SIGHASH_ALL is used)
         #

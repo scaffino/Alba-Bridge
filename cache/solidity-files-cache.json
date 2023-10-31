@@ -187,41 +187,6 @@
         "ParseBitcoinRawTx"
       ]
     },
-    "/Users/gscaffino/workspace/LN-bridge/contracts/ECDSA.sol": {
-      "lastModificationDate": 1696932536869,
-      "contentHash": "2c00df2266703092f3e080100b9add3f",
-      "sourceName": "contracts/ECDSA.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "ECDSA"
-      ]
-    },
     "/Users/gscaffino/workspace/LN-bridge/contracts/BTCUtils.sol": {
       "lastModificationDate": 1698053602944,
       "contentHash": "fd4e259ba476e1ee4dfd2af6127771a8",
@@ -261,7 +226,7 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/SafeMath.sol": {
-      "lastModificationDate": 1696932536867,
+      "lastModificationDate": 1698676103085,
       "contentHash": "5309d9d6214851538e82301c3e4ca2b9",
       "sourceName": "contracts/SafeMath.sol",
       "solcConfig": {
@@ -296,8 +261,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
-      "lastModificationDate": 1698676040940,
-      "contentHash": "f07b4a6f1cd35504127d38c2f31eabf7",
+      "lastModificationDate": 1698744294919,
+      "contentHash": "3178bf92da00788e2b5a34729fb0824c",
       "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -336,8 +301,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1698675931463,
-      "contentHash": "1a64936653e6527962cc36058dfb4799",
+      "lastModificationDate": 1698762258951,
+      "contentHash": "20d0ed428e415ab8bf259f26142dd0db",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -376,7 +341,7 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/CheckBitcoinSigs.sol": {
-      "lastModificationDate": 1697628546294,
+      "lastModificationDate": 1698676184972,
       "contentHash": "3f0466dcfa665cc92af0a320eef5e1e0",
       "sourceName": "contracts/CheckBitcoinSigs.sol",
       "solcConfig": {
@@ -415,7 +380,7 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/TypedMemView.sol": {
-      "lastModificationDate": 1696932536867,
+      "lastModificationDate": 1698676164952,
       "contentHash": "a603032dff5f7653da99ba1f2b429486",
       "sourceName": "contracts/TypedMemView.sol",
       "solcConfig": {
@@ -452,7 +417,7 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ViewBTC.sol": {
-      "lastModificationDate": 1696932536868,
+      "lastModificationDate": 1698676184972,
       "contentHash": "da1e80965b7ee87691c12fef3dc334bc",
       "sourceName": "contracts/ViewBTC.sol",
       "solcConfig": {
@@ -487,6 +452,41 @@
       ],
       "artifacts": [
         "ViewBTC"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/ECDSA.sol": {
+      "lastModificationDate": 1696932536869,
+      "contentHash": "2c00df2266703092f3e080100b9add3f",
+      "sourceName": "contracts/ECDSA.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "ECDSA"
       ]
     }
   }

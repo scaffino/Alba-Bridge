@@ -210,6 +210,8 @@ library ParseBTCLib {
     function getSignature(bytes memory _txBytes) internal pure returns(Signature memory) {
 
         Signature memory sig;
+        bytes memory curveOrder = "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141";
+
         // R
         if (_txBytes[42] == 0x47) { 
             sig.r = BytesLib.toBytes(BTC.sliceBytes32(_txBytes, 47));
@@ -221,14 +223,20 @@ library ParseBTCLib {
 
         // V
         // https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
-        if (BytesLib.toUint256(sig.r,0) % 2 == 0) { // 28 - 0x1C = first key with odd y 
-            sig.v = 28;
-        } else {
+        /* if ((BytesLib.toUint256(sig.r,0) % 2) == 0 && BytesLib.toUint256(sig.s,0) < BytesLib.toUint256(curveOrder,0)) { 
             sig.v = 27; // 27 - 0x1B = first key with even y
-        }
+        } else if ((BytesLib.toUint256(sig.r,0) % 2) == 0 && BytesLib.toUint256(sig.s,0) > BytesLib.toUint256(curveOrder,0)) {
+            sig.v = 29;
+        } else if ((BytesLib.toUint256(sig.r,0) % 2) == 1 && BytesLib.toUint256(sig.s,0) < BytesLib.toUint256(curveOrder,0)) {
+            sig.v = 28; // 28 - 0x1C = first key with odd y 
+        } else if ((BytesLib.toUint256(sig.r,0) % 2) == 1 && BytesLib.toUint256(sig.s,0) > BytesLib.toUint256(curveOrder,0)) {
+            sig.v = 30; 
+        } */
+
+        sig.v = 27;
 
         return sig;
-}
+    }  
 
     /*
     // this function returns the Ethereum address
