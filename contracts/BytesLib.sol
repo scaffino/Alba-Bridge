@@ -419,6 +419,10 @@ library BytesLib {
         return abi.encodePacked(_data);
     }
 
+    function toBytesNew(bytes4 _data) internal pure returns (bytes memory) {
+        return abi.encodePacked(_data);
+    }
+
     /* @notice      Convert uint256 to bytes
     *  @param _b    uint256 that needs to be converted
     *  @return      bytes

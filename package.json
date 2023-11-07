@@ -19,6 +19,7 @@
     "hardhat-gas-reporter": "^1.0.9"
   },
   "dependencies": {
+    "crypto-js": "^4.2.0",
     "eth-crypto": "^2.6.0"
   }
 }
