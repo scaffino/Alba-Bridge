@@ -83,7 +83,7 @@ describe("LNBridge", function(account) {
 
             await expect(LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigVWrong)).to.be.revertedWith("Invalid signature of V over the setup data");
 
-        }) 
+        })  
         
     }); 
 

@@ -11,11 +11,22 @@ This project uses [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-star
 
 * [Solidity](https://docs.soliditylang.org/en/latest/installing-solidity.html) (^0.8.9)
 
-## Note
+## Notes
 This project includes ParseBTCLib.sol a Solidity library for parsing Bitcoin transactions, including signature verification.
 
 It also contains a python folder taken from [python-bitcoin-utils](https://github.com/karask/python-bitcoin-utils) and modified to generate protocol-specific LN transactions.
 
 ## Contributing
 This is a research prototype. We welcome anyone to contribute. File a bug report or submit feature requests through the issue tracker. If you want to contribute feel free to submit a pull request.
+
+## Gas Cost Evaluation 
+![table](./images/table.png)
+
+Commenting out the verification of the two Ethereum signatures in the *setup* phase, the overhead for the setup is 373623 gas. 
+
+The verification of Bitcoin signatures costs $2 \times 10^6$ gas.
+
+## Tests 
+![tests-contract](./images/tests-contract.png)
+![tests-library](./images/tests-library.png)
 

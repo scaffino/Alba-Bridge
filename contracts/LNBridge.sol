@@ -95,7 +95,7 @@ contract LNBridge {
         // verify signatures over setup data
         bytes memory message = bytes.concat(BytesLib.toBytes(bridge.fundingTxId), bridge.fundingTx_script, BytesLib.toBytesNew(bridge.fundingTx_index), bridge.sighash, bridge.pkProver_Uncompressed, bridge.pkVerifier_Uncompressed, BytesLib.uint256ToBytes(bridge.timelock), BytesLib.uint256ToBytes(bridge.timelock_dispute));
         require(prover == ECDSA.recover(sha256(message), abi.encodePacked(sigP)), "Invalid signature of P over the setup data");
-        require(verifier == ECDSA.recover(sha256(message), abi.encodePacked(sigV)), "Invalid signature of V over the setup data");
+        require(verifier == ECDSA.recover(sha256(message), abi.encodePacked(sigV)), "Invalid signature of V over the setup data"); 
 
         // populate state variables
         state.validProofSubmitted = false;
