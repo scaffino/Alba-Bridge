@@ -40,41 +40,6 @@
         "BTC"
       ]
     },
-    "/Users/gscaffino/workspace/LN-bridge/contracts/SECP256K1.sol": {
-      "lastModificationDate": 1697712708603,
-      "contentHash": "d683468a113387e6fd1cf6aec02fae1f",
-      "sourceName": "contracts/SECP256K1.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 5
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "SECP256K1"
-      ]
-    },
     "/Users/gscaffino/workspace/LN-bridge/contracts/BytesLib.sol": {
       "lastModificationDate": 1699282757622,
       "contentHash": "f2ac81d9ec3554493cc5e52306ec921e",
@@ -110,6 +75,41 @@
       ],
       "artifacts": [
         "BytesLib"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/SECP256K1.sol": {
+      "lastModificationDate": 1697712708603,
+      "contentHash": "d683468a113387e6fd1cf6aec02fae1f",
+      "sourceName": "contracts/SECP256K1.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 5
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "SECP256K1"
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/node_modules/hardhat/console.sol": {
@@ -301,8 +301,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridgeHelper.sol": {
-      "lastModificationDate": 1699367236496,
-      "contentHash": "aca11385bac295d1c2e6c9e4be11aaee",
+      "lastModificationDate": 1699369390990,
+      "contentHash": "89d33cbabcf123db1ef1b015e7492eb0",
       "sourceName": "contracts/LNBridgeHelper.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -377,8 +377,8 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1699367320759,
-      "contentHash": "3601fb7c616889356b09b63e16579b1b",
+      "lastModificationDate": 1699373573021,
+      "contentHash": "9bcb93572c3c95fc21393cd71b61b2ff",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",

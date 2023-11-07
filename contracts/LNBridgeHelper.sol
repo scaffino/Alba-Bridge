@@ -10,7 +10,10 @@ import "./ECDSA.sol";
 
 library LNBridgeHelper {
 
-    function checkTxAreWellFormed(bytes memory TxP, bytes memory TxV, bytes memory fundingTx_script, bytes32 fundingTxId) internal pure returns (bool) {
+    function checkTxAreWellFormed(bytes memory TxP, bytes memory TxV, bytes memory fundingTx_script, bytes32 fundingTxId) 
+        internal pure returns (ParseBTCLib.LightningHTLCData[2] memory, 
+                               ParseBTCLib.P2PKHData[2] memory,
+                               ParseBTCLib.OpReturnData memory) {
 
         // check transactions are well formed
         ParseBTCLib.LightningHTLCData[2] memory lightningHTLC;
@@ -31,7 +34,7 @@ library LNBridgeHelper {
         require(ParseBTCLib.getInputsData(TxP).txid == fundingTxId, "P's commitment transaction does not spend the funding transaction");
         require(ParseBTCLib.getInputsData(TxV).txid == fundingTxId, "V's commitment transaction does not spend the funding transaction");
 
-        return true;
+        return (lightningHTLC, p2pkh, opreturn);
 
     }
 

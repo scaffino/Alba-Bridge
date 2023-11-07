@@ -49,7 +49,7 @@ describe("LNBridge", function(account) {
 
     });
 
-    describe("Call Setup", function () {
+    describe("Test Setup", function () {
 
         it("Populate Setup", async function () {
 
@@ -73,17 +73,21 @@ describe("LNBridge", function(account) {
         }) 
 
         
-         it("Verify parties' signatures over the setup data", async function () {
+        it("Revert if signature of P over the setup data is invalid", async function () {
 
-            // TODO GIULIA
+            await expect(LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigPWrong, testdata.setupSigV)).to.be.revertedWith("Invalid signature of P over the setup data");
 
-            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
-            //expect(address).to.equal(returnedValue);
+        }) 
+
+        it("Revert if signature of V over the setup data is invalid", async function () {
+
+            await expect(LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigVWrong)).to.be.revertedWith("Invalid signature of V over the setup data");
+
         }) 
         
     }); 
 
-    describe("Call Receive", async () => {
+    describe("Test Receive", async () => {
 
         it("Should emit event lockCoinsEvent(address addr, uint amount) when coins are successfully deposited", async function () {
 
@@ -144,18 +148,18 @@ describe("LNBridge", function(account) {
 
         }) 
 
-        it("Revert if current time is smaller than the time in the timelock. Event: Proof successfully verified: state.validProofSubmitted = true", async function () {
+        it("Revert if current time is smaller than the time in the timelock. Event: Proof successfully verified", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof successfully verified: state.validProofSubmitted = true", true);
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof successfully verified", true);
         }) 
 
-        it("Revert if current time is smaller than the time in the timelock. Event: Proof submitted too late: state.validProofSubmitted = false", async function () {
+        it("Revert if current time is smaller than the time in the timelock. Event: Proof submitted too late", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof submitted too late: state.validProofSubmitted = false", false);
+            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof submitted too late", false);
         })
 
         it("Revert if P's transaction is locked", async function () {
@@ -262,14 +266,14 @@ describe("LNBridge", function(account) {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Dispute successfully opened: state.disputeOpened = true", true);
+            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Dispute successfully opened", true);
         }) 
 
         it("Revert if current time is smaller than the time in the timelock. Event: Dispute not opened", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Dispute not opened: state.disputeOpened = false", false);
+            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Dispute not opened", false);
         })
 
         it("Check timelocked TxCP has timelock larger than Timelock T + Relative Timelock T_rel (false)", async function () {
@@ -314,22 +318,22 @@ describe("LNBridge", function(account) {
             let tx = await LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
         }) 
 
-        it("Emit event: Resolve Valid Dispute successfully executed: state.disputeClosedP = true", async function () {
+        it("Emit event: Resolve Valid Dispute successfully executed", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
             let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Valid Dispute successfully executed: state.disputeClosedP = true", true);
+            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Valid Dispute successfully executed", true);
         }) 
 
-        it("Emit event: Resolve Valid Dispute failed: state.disputeClosedP = false", async function () {
+        it("Emit event: Resolve Valid Dispute failed", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
             //let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Valid Dispute failed: state.disputeClosedP = false", false);
+            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Valid Dispute failed", false);
         }) 
 
         it("Revert if transaction submitted is locked", async function () {
@@ -364,23 +368,76 @@ describe("LNBridge", function(account) {
             let tx = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
         }) 
 
-        it("Emit event: Resolve Invalid Dispute successfully executed: state.disputeClosedV = true", async function () {
+        it("Emit event: Resolve Invalid Dispute successfully executed", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
             let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveInvalidDispute(testdata.revSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Invalid Dispute successfully executed: state.disputeClosedV = true", true);
+            await expect(LNBridge.resolveInvalidDispute(testdata.revSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Invalid Dispute successfully executed", true);
         }) 
 
-        it("Emit event: Resolve Invalid Dispute failed: state.disputeClosedV = false", async function () {
+        it("Emit event: Resolve Invalid Dispute failed", async function () {
 
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
             let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveInvalidDispute(testdata.WrongRevSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Invalid Dispute failed: state.disputeClosedV = false", false);
+            await expect(LNBridge.resolveInvalidDispute(testdata.WrongRevSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Resolve Invalid Dispute failed", false);
         }) 
+
+    }); 
+
+    describe("Test Settle", function () {
+
+        it("Call settle right after locking coins", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+
+            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+
+            let txResolveDispute = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
+
+            let settle = await LNBridge.settle();
+        }) 
+
+        it("Valid proof submitted and funds distributed", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+
+            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+
+            let txResolveDispute = await LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
+
+            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("Valid proof submitted and funds distributed", true);
+        }) 
+
+        it("Emit event: Contract instance closed: invalid dispute opened, all funds given to V", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+
+            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+
+            let txResolveDispute = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
+
+            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("All funds given to V", true);
+        }) 
+
+        it("Emit event: Contract instance closed: dispute was not closed, all funds given to P", async function () {
+
+            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+
+            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+
+            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("All funds given to P", true);       
+        }) 
+
+        it("Emit event: Contract instance closed: Funds distributed as for initial distribution", async function () {
+
+            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("Funds distributed as for initial distribution", true);       
+        }) 
+
+        // TODO: test balance distributions
 
     });
 
