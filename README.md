@@ -1,4 +1,4 @@
-# Proof-of-Concept of the ALBA protocol smart contract.
+# Proof-of-Concept of the ALBA Smart Contract.
 
 ## The ALBA Protocol
 A Proof-of-Concept implementation of the ALBA protocol, connecting the Lightning Network (LN, a layer-2 on top of Bitcoin) to Ethereum. It allows to verify on Ethereum (or on any other EVM-based chain) the state of a LN channel, either the current state of the channel or an upcoming update thereof.
