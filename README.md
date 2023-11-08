@@ -22,8 +22,6 @@ This is a research prototype. We welcome anyone to contribute. File a bug report
 ## Gas Cost Evaluation 
 ![table](./images/table.png)
 
-Commenting out the verification of the two Ethereum signatures in the *setup* phase, the overhead for the setup is 373623 gas. 
-
 The verification of Bitcoin signatures costs $2 \times 10^6$ gas.
 
 ## Tests 
