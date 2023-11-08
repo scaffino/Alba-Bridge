@@ -8,7 +8,7 @@ module.exports = {
   settings: {
     optimizer: {
       enabled: true,
-      runs: 5, // the smaller it is the more optimized it is
+      runs: 1, // the smaller it is the more optimized it is
     },
   },
   gasReporter: {
@@ -23,7 +23,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 5,
+            runs: 1,
           },
         },
       },
@@ -32,7 +32,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 5,
+            runs: 1,
           },
         },
       }

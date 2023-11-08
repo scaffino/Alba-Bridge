@@ -7,7 +7,7 @@ Costs are evaluated both in the optimistic (both parties are honest and cooperat
 
 ## Prerequisites
 
-This project uses [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started) to compile, run, and test the smart contracts on a local development network. 
+* This project uses [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started) to compile, run, and test the smart contracts on a local development network. 
 
 * [Solidity](https://docs.soliditylang.org/en/latest/installing-solidity.html) (^0.8.9)
 
@@ -27,6 +27,8 @@ Commenting out the verification of the two Ethereum signatures in the *setup* ph
 The verification of Bitcoin signatures costs $2 \times 10^6$ gas.
 
 ## Tests 
+Tests for the contract
 ![tests-contract](./images/tests-contract.png)
+Tests for the library
 ![tests-library](./images/tests-library.png)
 

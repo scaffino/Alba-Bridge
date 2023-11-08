@@ -10,7 +10,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -49,7 +49,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -86,7 +86,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -121,7 +121,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -156,7 +156,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -196,7 +196,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -234,7 +234,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -261,15 +261,15 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ParseBTCLib.sol": {
-      "lastModificationDate": 1698744294919,
-      "contentHash": "3178bf92da00788e2b5a34729fb0824c",
+      "lastModificationDate": 1699455368893,
+      "contentHash": "3c66ccb0b65631aee87eeec2e70e3e1b",
       "sourceName": "contracts/ParseBTCLib.sol",
       "solcConfig": {
         "version": "0.8.9",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -301,15 +301,15 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridgeHelper.sol": {
-      "lastModificationDate": 1699369390990,
-      "contentHash": "89d33cbabcf123db1ef1b015e7492eb0",
+      "lastModificationDate": 1699455373602,
+      "contentHash": "031f4f1a13679004b65f111591e63064",
       "sourceName": "contracts/LNBridgeHelper.sol",
       "solcConfig": {
         "version": "0.8.9",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -350,7 +350,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -377,15 +377,15 @@
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1699374828742,
-      "contentHash": "7ca8dd42ed82dc65cfcf4286c8052a11",
+      "lastModificationDate": 1699458995634,
+      "contentHash": "d6deb586b4d58b5191dad84d13bd22ac",
       "sourceName": "contracts/LNBridge.sol",
       "solcConfig": {
         "version": "0.8.9",
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -427,7 +427,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -466,7 +466,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {
@@ -503,7 +503,7 @@
         "settings": {
           "optimizer": {
             "enabled": true,
-            "runs": 5
+            "runs": 1
           },
           "outputSelection": {
             "*": {

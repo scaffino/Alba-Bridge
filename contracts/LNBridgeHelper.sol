@@ -11,12 +11,12 @@ import "./ECDSA.sol";
 library LNBridgeHelper {
 
     function checkTxAreWellFormed(bytes memory TxP, bytes memory TxV, bytes memory fundingTx_script, bytes32 fundingTxId) 
-        internal pure returns (ParseBTCLib.LightningHTLCData[2] memory, 
+        internal pure returns (ParseBTCLib.HTLCData[2] memory, 
                                ParseBTCLib.P2PKHData[2] memory,
                                ParseBTCLib.OpReturnData memory) {
 
         // check transactions are well formed
-        ParseBTCLib.LightningHTLCData[2] memory lightningHTLC;
+        ParseBTCLib.HTLCData[2] memory lightningHTLC;
         ParseBTCLib.P2PKHData[2] memory p2pkh; 
         ParseBTCLib.OpReturnData memory opreturn;
         (lightningHTLC[0], p2pkh[0], opreturn) = ParseBTCLib.getOutputsDataLNB(TxP); //note: the p2pkh_P is the p2pkh belonging in P's commitment transaction, but holds the public key of V
@@ -31,8 +31,8 @@ library LNBridgeHelper {
         require(sha256(BTCUtils.hash160(pk1)) == sha256(abi.encodePacked(p2pkh[1].pkhash)), "The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");        
 
         // check transactions spend the funding transaction 
-        require(ParseBTCLib.getInputsData(TxP).txid == fundingTxId, "P's commitment transaction does not spend the funding transaction");
-        require(ParseBTCLib.getInputsData(TxV).txid == fundingTxId, "V's commitment transaction does not spend the funding transaction");
+        require(ParseBTCLib.getInputsData(TxP).txid == fundingTxId, "CTxP does not spend funding Tx");
+        require(ParseBTCLib.getInputsData(TxV).txid == fundingTxId, "CTxV does not spend funding Tx");
 
         return (lightningHTLC, p2pkh, opreturn);
 
@@ -40,7 +40,7 @@ library LNBridgeHelper {
 
     function getRevSecret(bytes memory Tx) internal pure returns (bytes32) {
 
-        ParseBTCLib.LightningHTLCData memory lightningHTLC;
+        ParseBTCLib.HTLCData memory lightningHTLC;
         ParseBTCLib.P2PKHData memory p2pkh; 
         ParseBTCLib.OpReturnData memory opreturn;
         (lightningHTLC, p2pkh, opreturn) = ParseBTCLib.getOutputsDataLNB(Tx); 
@@ -66,14 +66,14 @@ library LNBridgeHelper {
         || (sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+1), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(pkVerifier_Uncompressed))
         || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+2), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(pkVerifier_Uncompressed)
         || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[0]), uint8(sig[1].v+3), BytesLib.toUint256(sig[1].r,0), BytesLib.toUint256(sig[1].s,0))) == sha256(pkVerifier_Uncompressed)
-        ), "Invalid signature of V over commitment transaction of P"); 
+        ), "Invalid signature of V over CTxP"); 
 
         digest[1] = ParseBTCLib.getTxDigest(TxV, fundingTx_script, sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
         require((sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(pkProver_Uncompressed)
         || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+1), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(pkProver_Uncompressed)
         || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+2), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(pkProver_Uncompressed)
         || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest[1]), uint8(sig[0].v+3), BytesLib.toUint256(sig[0].r,0), BytesLib.toUint256(sig[0].s,0))) == sha256(pkProver_Uncompressed)
-        ), "Invalid signature of P over commitment transaction of V");
+        ), "Invalid signature of P over CTxV");
 
         return true;
 
@@ -88,7 +88,7 @@ library LNBridgeHelper {
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+1), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(pk_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+2), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(pk_Uncompressed)
             || sha256(ParseBTCLib.verifyBTCSignature(uint256(digest), uint8(sigV.v+3), BytesLib.toUint256(sigV.r,0), BytesLib.toUint256(sigV.s,0))) == sha256(pk_Uncompressed)), 
-            "Invalid signature of V over commitment transaction of P"); 
+            "Invalid signature of V over CTxP"); 
 
         return true;
 

@@ -11,7 +11,7 @@ import "./SECP256K1.sol";
 
 library ParseBTCLib {
 
-    struct LightningHTLCData {
+    struct HTLCData {
         uint value;
         bytes32 pk1; // V
         bytes32 pk2; // P
@@ -53,9 +53,9 @@ library ParseBTCLib {
         bytes pk2;
     }
 
-    function getOutputsDataLNB(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory, OpReturnData memory) {
+    function getOutputsDataLNB(bytes memory _txBytes) internal pure returns(HTLCData memory, P2PKHData memory, OpReturnData memory) {
 
-        LightningHTLCData memory htlc;
+        HTLCData memory htlc;
         OpReturnData memory opreturn;
         P2PKHData memory p2pkh;
         ExtractOutputAux memory out_aux;
@@ -98,9 +98,9 @@ library ParseBTCLib {
         return (htlc, p2pkh, opreturn);
     }
 
-    function getOutputsDataLN(bytes memory _txBytes) internal pure returns(LightningHTLCData memory, P2PKHData memory) {
+    function getOutputsDataLN(bytes memory _txBytes) internal pure returns(HTLCData memory, P2PKHData memory) {
 
-        LightningHTLCData memory htlc;
+        HTLCData memory htlc;
         P2PKHData memory p2pkh;
         ExtractOutputAux memory out_aux;
 
