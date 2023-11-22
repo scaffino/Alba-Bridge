@@ -5,9 +5,9 @@ const { ethers } = require("hardhat");
 const EthCrypto = require('eth-crypto');
 const { sha256 } = require("ethers/lib/utils");
 
-describe("LNBridge", function(account) {
-    let LNBridgeContractFactory;
-    let LNBridge;
+describe("ALBA", function(account) {
+    let ALBAContractFactory;
+    let ALBA;
 
     beforeEach(async () => {
 
@@ -30,21 +30,21 @@ describe("LNBridge", function(account) {
         const addressV = EthCrypto.publicKey.toAddress(publicKeyV); 
 
 
-        LNBridgeContractFactory = await ethers.getContractFactory("LNBridge");
-        LNBridge = await LNBridgeContractFactory.deploy(addressP, addressV);
-        await LNBridge.deployed();
+        ALBAContractFactory = await ethers.getContractFactory("ALBA");
+        ALBA = await ALBAContractFactory.deploy(addressP, addressV);
+        await ALBA.deployed();
 
         const [prover, verifier] = await ethers.getSigners();
 
         // Prover locks coins
         await prover.sendTransaction({
-            to: LNBridge.address,
+            to: ALBA.address,
             value: ethers.utils.parseEther("0.5"), // Sends 0.5 ether
         });
 
         // Verifier locks coins
         await verifier.sendTransaction({
-            to: LNBridge.address,
+            to: ALBA.address,
             value: ethers.utils.parseEther("0.5"), // Sends 0.5 ether
         });
 
@@ -54,12 +54,12 @@ describe("LNBridge", function(account) {
 
         it("Call checkSignatureNew, sig of P over CTV", async function () {
 
-            let tx = await LNBridge.checkSignatureEcrecover(testdata.CT_V_withPsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed);
+            let tx = await ALBA.checkSignatureEcrecover(testdata.CT_V_withPsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed);
         }) 
 
         it("Call checkSignatureNew, sig of V over CTP", async function () {
 
-            let tx = await LNBridge.checkSignatureEcrecover(testdata.CT_P_withVsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkVerifierUnprefixedUncompressed);
+            let tx = await ALBA.checkSignatureEcrecover(testdata.CT_P_withVsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkVerifierUnprefixedUncompressed);
         }) 
     }); */
 
@@ -82,20 +82,20 @@ describe("LNBridge", function(account) {
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, digest);
 
-            let tx = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, signatureP, signatureV);
+            let tx = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, signatureP, signatureV);
             const receipt = await ethers.provider.getTransactionReceipt(tx.hash);
         }) 
 
         
         it("Revert if signature of P over setup data is invalid", async function () {
 
-            await expect(LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigPWrong, testdata.setupSigV)).to.be.revertedWith("Invalid signatures over setup data");
+            await expect(ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigPWrong, testdata.setupSigV)).to.be.revertedWith("Invalid signatures over setup data");
 
         }) 
 
         it("Revert if signature of V over setup data is invalid", async function () {
 
-            await expect(LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigVWrong)).to.be.revertedWith("Invalid signatures over setup data");
+            await expect(ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigVWrong)).to.be.revertedWith("Invalid signatures over setup data");
 
         })  
         
@@ -107,20 +107,20 @@ describe("LNBridge", function(account) {
 
             const [prover, verifier] = await ethers.getSigners();
 
-            const initialBalance = await ethers.provider.getBalance(LNBridge.address)
+            const initialBalance = await ethers.provider.getBalance(ALBA.address)
 
             // Send Ether to the contract using a simple Ether transfer
             const amountToSend = ethers.utils.parseEther("0.1")
-            await prover.sendTransaction({ to: LNBridge.address, value: amountToSend })
-            await verifier.sendTransaction({ to: LNBridge.address, value: amountToSend })
+            await prover.sendTransaction({ to: ALBA.address, value: amountToSend })
+            await verifier.sendTransaction({ to: ALBA.address, value: amountToSend })
 
             // Check if the contract's balance increased by the sent amount
-            const finalBalance = await ethers.provider.getBalance(LNBridge.address)
+            const finalBalance = await ethers.provider.getBalance(ALBA.address)
             const totalAmountSent = ethers.utils.parseEther("0.2")
             expect(finalBalance).to.equal(initialBalance.add(totalAmountSent))
 
             // Check if the Log event was emitted with the correct data
-            const logs = await LNBridge.queryFilter("lockEvent")
+            const logs = await ALBA.queryFilter("lockEvent")
             expect(logs.length).to.equal(4)
             // I pick the third event, as the first two are emitted in the BeforeEach at the beginning
             const logP = logs[2]
@@ -140,10 +140,10 @@ describe("LNBridge", function(account) {
             const [prover, verifier, other] = await ethers.getSigners();
 
             const amountToSend = ethers.utils.parseEther("0.1")
-            await other.sendTransaction({ to: LNBridge.address, value: amountToSend })
+            await other.sendTransaction({ to: ALBA.address, value: amountToSend })
 
             // Check if the Log event was emitted with the correct data
-            const logs = await LNBridge.queryFilter("stateEvent")
+            const logs = await ALBA.queryFilter("stateEvent")
             expect(logs.length).to.equal(1)
             // I pick the third event, as the first two are emitted in the BeforeEach at the beginning
             const logP = logs[0]
@@ -176,9 +176,9 @@ describe("LNBridge", function(account) {
             //console.log("sig V");
             //console.log(signatureV); 
  
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txoptimisticSubmitProof = await LNBridge.optimisticSubmitProof(signatureP, signatureV, 12);
+            let txoptimisticSubmitProof = await ALBA.optimisticSubmitProof(signatureP, signatureV, 12);
 
         }) 
 
@@ -199,10 +199,10 @@ describe("LNBridge", function(account) {
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, digest);
  
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            //let txoptimisticSubmitProof = await LNBridge.optProof(signatureP, signatureV, 12);
-            await expect(LNBridge.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof optimistically verified", true);
+            //let txoptimisticSubmitProof = await ALBA.optProof(signatureP, signatureV, 12);
+            await expect(ALBA.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(ALBA, "stateEvent").withArgs("Proof optimistically verified", true);
 
         }) 
 
@@ -224,10 +224,10 @@ describe("LNBridge", function(account) {
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, wrongDigest);
  
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            //let txoptimisticSubmitProof = await LNBridge.optProof(signatureP, signatureV, 12);
-            await expect(LNBridge.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof verification failed", false);
+            //let txoptimisticSubmitProof = await ALBA.optProof(signatureP, signatureV, 12);
+            await expect(ALBA.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(ALBA, "stateEvent").withArgs("Proof verification failed", false);
 
 
         }) 
@@ -237,112 +237,112 @@ describe("LNBridge", function(account) {
 
         it("Is Proof valid?", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txSubmitProof = await LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked);
+            let txSubmitProof = await ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked);
 
         }) 
 
         it("Revert if current time is smaller than the time in the timelock. Event: Proof successfully verified", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof successfully verified", true);
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Proof successfully verified", true);
         }) 
 
         it("Revert if current time is smaller than the time in the timelock. Event: Proof verification failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Proof verification failed", false);
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Proof verification failed", false);
         })
 
         it("Revert if P's transaction is locked", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP locked");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP locked");
         })
         
         it("Revert if V's transaction is locked", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Locked)).to.be.revertedWith("CTxV locked");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Locked)).to.be.revertedWith("CTxV locked");
         })
 
         it("Revert if P's commitment transaction does not hardcode V's revocation key", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked_WrongRevSecret, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("P's commitment transaction does not hardcode V's revocation key");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked_WrongRevSecret, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("P's commitment transaction does not hardcode V's revocation key");
         })
 
         it("Revert if there is an mismatch between the amounts in p2pkh of P and in lightning HTLC of V (wrong P2PKH of P)", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked_WrongAmountP2PKH, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Amount mismatch between p2pkh of P and lightning HTLC of V");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked_WrongAmountP2PKH, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Amount mismatch between p2pkh of P and lightning HTLC of V");
 
         }) 
 
         it("Revert if there is an mismatch between the amounts in p2pkh of P and in lightning HTLC of V (wrong HTLC of V)", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked_WrongAmountHTLC)).to.be.revertedWith("Amount mismatch between p2pkh of P and lightning HTLC of V");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked_WrongAmountHTLC)).to.be.revertedWith("Amount mismatch between p2pkh of P and lightning HTLC of V");
 
         }) 
 
         it("Revert if there is an mismatch between the amounts in p2pkh of P and in lightning HTLC of V", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked_WrongAmountHTLC, testdata.CT_V_withPsig_Unlocked_WrongAmountP2PKH)).to.be.revertedWith("Amount mismatch between p2pkh of V and lightning HTLC of P");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked_WrongAmountHTLC, testdata.CT_V_withPsig_Unlocked_WrongAmountP2PKH)).to.be.revertedWith("Amount mismatch between p2pkh of V and lightning HTLC of P");
 
         }) 
 
         it("Revert if the p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked_WrongP2pkh, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("The p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked_WrongP2pkh, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("The p2pkh in P's unlocked commitment transaction does not correspond to Verifier's one");
         }) 
 
         it("Revert if the p2pkh in V's unlocked commitment transaction does not correspond to Prover's one", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked_WrongP2pkh)).to.be.revertedWith("The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_Unlocked_WrongP2pkh)).to.be.revertedWith("The p2pkh in V's unlocked commitment transaction does not correspond to Prover's one");
         }) 
 
         it("Revert if P's commitment transaction does not spend the funding transaction", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_WrongFund, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP does not spend funding Tx");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_WrongFund, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP does not spend funding Tx");
         })
 
         it("Revert if V's commitment transaction does not spend the funding transaction", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_WrongFund)).to.be.revertedWith("CTxV does not spend funding Tx");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withPsig_WrongFund)).to.be.revertedWith("CTxV does not spend funding Tx");
         })
 
         it("Revert if verification of signature of P failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withWrongPsig_Unlocked)).to.be.revertedWith("Invalid signature of P over CTxV");
+            await expect(ALBA.submitProof(testdata.CT_P_withVsig_Unlocked, testdata.CT_V_withWrongPsig_Unlocked)).to.be.revertedWith("Invalid signature of P over CTxV");
 
         }) 
 
         it("Revert if verification of signature of V failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.submitProof(testdata.CT_P_withWrongVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over CTxP");
+            await expect(ALBA.submitProof(testdata.CT_P_withWrongVsig_Unlocked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over CTxP");
 
         })  
 
@@ -352,52 +352,52 @@ describe("LNBridge", function(account) {
 
         it("Call Dispute", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let tx = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let tx = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
         }) 
 
         it("Revert if current time is smaller than the time in the timelock. Event: Dispute successfully opened", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Dispute opened", true);
+            await expect(ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Dispute opened", true);
         }) 
 
         it("Revert if current time is smaller than the time in the timelock. Event: Dispute not opened", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.smallTimelock, testdata.RelTimelock, testdata.setupSigPSmallTimelock, testdata.setupSigVSmallTimelock);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Failed to open dispute", false);
+            await expect(ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Failed to open dispute", false);
         })
 
         it("Check timelocked TxCP has timelock larger than Timelock T + Relative Timelock T_rel (false)", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_LockedOct29, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP is unlocked or its timelocked is smaller than/equal to T + T_rel"); // tests with timelock run in October/Novemeber 2023. Testdata with timelock must be changed is tests are run later on. 
+            await expect(ALBA.dispute(testdata.CT_P_withVsig_LockedOct29, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("CTxP is unlocked or its timelocked is smaller than/equal to T + T_rel"); // tests with timelock run in October/Novemeber 2023. Testdata with timelock must be changed is tests are run later on. 
         }) 
         
         it("Check timelocked TxCP has timelock larger than Timelock T + Relative Timelock T_rel (true)", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let tx = await LNBridge.dispute(testdata.CT_P_withVsig_LockedDec24, testdata.CT_V_withPsig_Unlocked);
+            let tx = await ALBA.dispute(testdata.CT_P_withVsig_LockedDec24, testdata.CT_V_withPsig_Unlocked);
         }) 
 
         it("Revert if verification of signature of P failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withWrongPsig_Unlocked)).to.be.revertedWith("Invalid signature of P over CTxV");
+            await expect(ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withWrongPsig_Unlocked)).to.be.revertedWith("Invalid signature of P over CTxV");
 
         }) 
 
         it("Revert if verification of signature of V failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            await expect(LNBridge.dispute(testdata.CT_P_withWrongVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over CTxP");
+            await expect(ALBA.dispute(testdata.CT_P_withWrongVsig_Locked, testdata.CT_V_withPsig_Unlocked)).to.be.revertedWith("Invalid signature of V over CTxP");
         }) 
 
     }); 
@@ -406,47 +406,47 @@ describe("LNBridge", function(account) {
 
         it("Call resolveValidDispute", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            let tx = await LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
+            let tx = await ALBA.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
         }) 
 
         it("Emit event: Resolve Valid Dispute successfully executed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Valid Dispute resolved", true);
+            await expect(ALBA.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Valid Dispute resolved", true);
         }) 
 
         it("Emit event: Resolve Valid Dispute failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            //let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            //let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(LNBridge, "stateEvent").withArgs("Valid Dispute unresolved", false);
+            await expect(ALBA.resolveValidDispute(testdata.CT_P_withVsig_Unlocked)).to.emit(ALBA, "stateEvent").withArgs("Valid Dispute unresolved", false);
         }) 
 
         it("Revert if transaction submitted is locked", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Locked)).to.be.revertedWith("CTxP locked");
+            await expect(ALBA.resolveValidDispute(testdata.CT_P_withVsig_Locked)).to.be.revertedWith("CTxP locked");
         })
 
         it("Revert if verification of signature of V failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withWrongVsig_Unlocked)).to.be.revertedWith("Invalid signature");
+            await expect(ALBA.resolveValidDispute(testdata.CT_P_withWrongVsig_Unlocked)).to.be.revertedWith("Invalid signature");
         })
 
 
@@ -456,29 +456,29 @@ describe("LNBridge", function(account) {
 
         it("Call resolveInvalidDispute", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            let tx = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
+            let tx = await ALBA.resolveInvalidDispute(testdata.revSecretP);
         }) 
 
         it("Emit event: Resolve Invalid Dispute successfully executed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveInvalidDispute(testdata.revSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Invalid Dispute resolved", true);
+            await expect(ALBA.resolveInvalidDispute(testdata.revSecretP)).to.emit(ALBA, "stateEvent").withArgs("Invalid Dispute resolved", true);
         }) 
 
         it("Emit event: Resolve Invalid Dispute failed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveInvalidDispute(testdata.WrongRevSecretP)).to.emit(LNBridge, "stateEvent").withArgs("Invalid Dispute unresolved", false);
+            await expect(ALBA.resolveInvalidDispute(testdata.WrongRevSecretP)).to.emit(ALBA, "stateEvent").withArgs("Invalid Dispute unresolved", false);
         }) 
 
     }); 
@@ -487,49 +487,49 @@ describe("LNBridge", function(account) {
 
         it("Call settle right after locking coins", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            let txResolveDispute = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
+            let txResolveDispute = await ALBA.resolveInvalidDispute(testdata.revSecretP);
 
-            let settle = await LNBridge.settle();
+            let settle = await ALBA.settle();
         }) 
 
         it("Valid proof submitted and funds distributed", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            let txResolveDispute = await LNBridge.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
+            let txResolveDispute = await ALBA.resolveValidDispute(testdata.CT_P_withVsig_Unlocked);
 
-            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("Valid proof submitted and funds distributed", true);
+            await expect(ALBA.settle()).to.emit(ALBA, "stateEvent").withArgs("Valid proof submitted and funds distributed", true);
         }) 
 
         it("Emit event: Contract instance closed: invalid dispute opened, all funds given to V", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            let txResolveDispute = await LNBridge.resolveInvalidDispute(testdata.revSecretP);
+            let txResolveDispute = await ALBA.resolveInvalidDispute(testdata.revSecretP);
 
-            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("All funds given to V", true);
+            await expect(ALBA.settle()).to.emit(ALBA, "stateEvent").withArgs("All funds given to V", true);
         }) 
 
         it("Emit event: Contract instance closed: dispute was not closed, all funds given to P", async function () {
 
-            let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
+            let txSetup = await ALBA.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
+            let txDispute = await ALBA.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("All funds given to P", true);       
+            await expect(ALBA.settle()).to.emit(ALBA, "stateEvent").withArgs("All funds given to P", true);       
         }) 
 
         it("Emit event: Contract instance closed: Funds distributed as for initial distribution", async function () {
 
-            await expect(LNBridge.settle()).to.emit(LNBridge, "stateEvent").withArgs("Funds distributed", true);       
+            await expect(ALBA.settle()).to.emit(ALBA, "stateEvent").withArgs("Funds distributed", true);       
         }) 
 
         // TODO: test balance distributions

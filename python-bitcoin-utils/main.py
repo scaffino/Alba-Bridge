@@ -92,11 +92,11 @@ secret_rev_V = hash256("Hey! This is V, and this is my revocation secret".encode
 #print("")
 
 # P is owner and V is punisher. Secret_rev is from P (V knows it)
-ct_P_locked = txs.get_LNBridge_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
+ct_P_locked = txs.get_ALBA_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
 
 ct_V_locked = txs.get_standard_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=True)
 
-ct_P_unlocked = txs.get_LNBridge_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
+ct_P_unlocked = txs.get_ALBA_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_P, secret_rev_V, 9000, 9000, 420, l=True, bothsigs=False, timelock=0x2, locked=False)
 
 ct_V_unlocked = txs.get_standard_ct(TxInput('da09f9ac4c16a0f988350bca3243c9e3b6b7f6b8c471db7c49c50de2cb2b3eeb', 0), id_P, id_V, secret_rev_V, 9000, 9000, 420, l=False, bothsigs=False, timelock=0x2, locked=False)
 

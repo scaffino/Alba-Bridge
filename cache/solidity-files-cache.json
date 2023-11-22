@@ -300,47 +300,6 @@
         "ParseBTCLib"
       ]
     },
-    "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridgeHelper.sol": {
-      "lastModificationDate": 1700661042472,
-      "contentHash": "b673f016dadb006d3c9b6ba8014f0fa7",
-      "sourceName": "contracts/LNBridgeHelper.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "hardhat/console.sol",
-        "./ParseBTCLib.sol",
-        "./BytesLib.sol",
-        "./BTCUtils.sol",
-        "./ECDSA.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "LNBridgeHelper"
-      ]
-    },
     "/Users/gscaffino/workspace/LN-bridge/contracts/ECDSA.sol": {
       "lastModificationDate": 1696932536869,
       "contentHash": "2c00df2266703092f3e080100b9add3f",
@@ -374,49 +333,6 @@
       ],
       "artifacts": [
         "ECDSA"
-      ]
-    },
-    "/Users/gscaffino/workspace/LN-bridge/contracts/LNBridge.sol": {
-      "lastModificationDate": 1700661304575,
-      "contentHash": "bf879d1f2efa76069d17aca17d54e6a4",
-      "sourceName": "contracts/LNBridge.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "hardhat/console.sol",
-        "./ParseBTCLib.sol",
-        "./BytesLib.sol",
-        "./BTCUtils.sol",
-        "./ECDSA.sol",
-        "./LNBridgeHelper.sol",
-        "./SchnorrN.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "LNBridge"
       ]
     },
     "/Users/gscaffino/workspace/LN-bridge/contracts/CheckBitcoinSigs.sol": {
@@ -601,6 +517,90 @@
       ],
       "artifacts": [
         "SchnorrAccountAbstraction"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/ALBA.sol": {
+      "lastModificationDate": 1700672685515,
+      "contentHash": "bec2dd257896e90987c9c8ff0fff0f93",
+      "sourceName": "contracts/ALBA.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "hardhat/console.sol",
+        "./ParseBTCLib.sol",
+        "./BytesLib.sol",
+        "./BTCUtils.sol",
+        "./ECDSA.sol",
+        "./ALBAHelper.sol",
+        "./SchnorrN.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "ALBA"
+      ]
+    },
+    "/Users/gscaffino/workspace/LN-bridge/contracts/ALBAHelper.sol": {
+      "lastModificationDate": 1700672651739,
+      "contentHash": "6197d64d2d3c6e91142deabcf67641fb",
+      "sourceName": "contracts/ALBAHelper.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "hardhat/console.sol",
+        "./ParseBTCLib.sol",
+        "./BytesLib.sol",
+        "./BTCUtils.sol",
+        "./ECDSA.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "ALBAHelper"
       ]
     }
   }

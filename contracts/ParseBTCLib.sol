@@ -7,7 +7,7 @@ import "./BTCUtils.sol";
 import "./SECP256K1.sol";
 
 
-// N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our bridge protocol. Be careful when using it for general purpose transactions.
+// N.B.: this library is tailored to the Lightning Network transactions and to the transactions used in our ALBA protocol. Be careful when using it for general purpose transactions.
 
 library ParseBTCLib {
 

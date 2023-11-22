@@ -48,7 +48,7 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
 
     return tx
 
-def get_LNBridge_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val, val_l: int, val_r: int, fee: int, l: bool, bothsigs: bool, timelock, locked: bool) -> Transaction:
+def get_ALBA_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val, val_l: int, val_r: int, fee: int, l: bool, bothsigs: bool, timelock, locked: bool) -> Transaction:
     if l: #ct_prover, has id and secret_V in opreturn output
         tx_out0 = TxOutput(int(val_l-fee/2), scripts.get_script_lightning_locked(id_l, id_r, hashed_secret, timelock)) # output to l
         tx_out1 = TxOutput(int(val_r-fee/2), id_r.p2pkh) # output to r
