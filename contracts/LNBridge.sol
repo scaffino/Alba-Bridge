@@ -7,8 +7,19 @@ import "./BytesLib.sol";
 import "./BTCUtils.sol";
 import "./ECDSA.sol";
 import "./LNBridgeHelper.sol";
+import "./SchnorrN.sol";
 
 // This contract is used by Prover P and verifier V to verify on Ethereum the current state of their Lightning payment channel 
+
+// ******** ECDSA *********
+// I could use ecrecover, which returns the address. Ethereum addresses are created by taking the Keccak-256 hash of the public key and representing it as a hexadecimal number. The last 20 bytes of the Keccak-256 hash are used to generate the address. 
+// This means, that I can tranform the pub key into the ethereum address and check whether it matches or not. This would greatly reduce the gas cost
+
+// ******** Schnorr *********
+// TODO GIULIA: replace ecdsa with schnorr
+// Solidity Schnorr verification: https://github.com/noot/schnorr-verify
+//                                https://github.com/borislav-itskov/schnorrkel.js/blob/main/contracts/SchnorrAccountAbstraction.sol#L27
+// bitcoin utils: https://github.com/karask/python-bitcoin-utils/blob/master/bitcoinutils/schnorr.py
 
 contract LNBridge {
 
@@ -104,7 +115,7 @@ contract LNBridge {
         state.setupDone = true;
     }
 
-    function submitProof(bytes memory CT_P_unlocked, 
+    function submitProof(bytes memory CT_P_unlocked,                    
                          bytes memory CT_V_unlocked) external {
 
         // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
@@ -123,7 +134,7 @@ contract LNBridge {
             ParseBTCLib.OpReturnData memory opreturn;
             (htlc, p2pkh, opreturn) = LNBridgeHelper.checkTxAreWellFormed(CT_P_unlocked, CT_V_unlocked, bridge.fundTxScript, bridge.fundTxId);
 
-            LNBridgeHelper.checkSignatures(CT_P_unlocked, CT_V_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkPUncompr, bridge.pkVUncompr);         
+            LNBridgeHelper.checkSignaturesEcrecover(CT_P_unlocked, CT_V_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkPUncompr, bridge.pkVUncompr);         
 
             // Check on the channel balance: e.g., require the balance of P is higher than X, with X = 10 in this example
             require(htlc[0].value > 10, "Prover does not have a sufficient amount of coins");
@@ -131,18 +142,16 @@ contract LNBridge {
             // update state of the protocol
             state.proofSubmitted = true;
 
-            //emit stateEvent("Proof successfully verified: state.proofSubmitted = true", state.proofSubmitted);
             emit stateEvent("Proof successfully verified", state.proofSubmitted);
 
         } else {
 
-            //emit stateEvent("Proof submitted too late: state.proofSubmitted = false", state.proofSubmitted);
             emit stateEvent("Proof verification failed", state.proofSubmitted);
 
         } 
     }
 
-    function optimisticProof(bytes memory sigP, 
+    function optimisticSubmitProof(bytes memory sigP, 
                              bytes memory sigV, uint256 seqNumber) external {
 
         //string memory label = "proofSubmitted";
@@ -165,7 +174,7 @@ contract LNBridge {
 
             emit stateEvent("Proof verification failed", state.proofSubmitted);
 
-        }  
+        }   
     }
 
     function dispute(bytes memory CT_P_locked, 
@@ -187,7 +196,7 @@ contract LNBridge {
             ParseBTCLib.OpReturnData memory opreturn;
             (htlc, p2pkh, opreturn) = LNBridgeHelper.checkTxAreWellFormed(CT_P_locked, CT_V_unlocked, bridge.fundTxScript, bridge.fundTxId);
 
-            require(LNBridgeHelper.checkSignatures(CT_P_locked, CT_V_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkPUncompr, bridge.pkVUncompr) == true, "Invalid signatures");   
+            require(LNBridgeHelper.checkSignaturesEcrecover(CT_P_locked, CT_V_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkPUncompr, bridge.pkVUncompr) == true, "Invalid signatures");   
 
             // Check on the channel balance: e.g., require the balance of P is higher than X, with X = 10 in this example
             require(htlc[0].value > 10, "No sufficient amount of coins");
@@ -229,7 +238,7 @@ contract LNBridge {
             require(p2pkh.value == paymentChan.balV, "The value in the p2pkh does not corrispond to the value in the HTLC of V's unlocked transaction");
 
             //check signature
-            LNBridgeHelper.checkSignature(CT_P_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkVUncompr);    
+            LNBridgeHelper.checkSignatureEcrecover(CT_P_unlocked, bridge.fundTxScript, bridge.sighash, bridge.pkVUncompr);    
         
             // update state of the protocol
             state.disputeClosedP = true;
@@ -300,6 +309,6 @@ contract LNBridge {
             emit stateEvent("Funds distributed", true);
 
         }
-    }
+    } 
 
 }

@@ -94,4 +94,51 @@ library LNBridgeHelper {
 
     }
 
+    function checkSignaturesEcrecover(bytes memory TxP, bytes memory TxV, bytes memory fundingTx_script, bytes memory sighash, bytes memory pkProver_Uncompressed, bytes memory pkVerifier_Uncompressed) internal pure returns (bool) {
+
+        //retrieve signatures
+        ParseBTCLib.Signature[2] memory sig;
+        sig[1] = ParseBTCLib.getSignature(TxP); // sig V
+        sig[0] = ParseBTCLib.getSignature(TxV); // sig P
+
+        //verify signatures
+        bytes32[2] memory digest;
+        digest[0] =  ParseBTCLib.getTxDigest(TxP, fundingTx_script, sighash); // digest of commitment transaction of P      
+        // https://bitcointalk.org/index.php?topic=5249677.0
+        // recid used to compute v is not necessary: just cycle through all the possible coordinate pairs and check if any of them match the signature. The recid just speeds up  verification.
+        // TODO: to determine parity, one can use the (unpacked) x in the verifyBTCSignature
+        address ethAddressV = ecrecover(digest[0], sig[1].v, bytes32(sig[1].r), bytes32(sig[1].s));
+        address pkToAddressV = address(bytes20(BytesLib.slice(abi.encodePacked(keccak256(pkVerifier_Uncompressed)), 12, 20)));
+        if (ethAddressV != pkToAddressV) {
+            ethAddressV = ecrecover(digest[0], sig[1].v+1, bytes32(sig[1].r), bytes32(sig[1].s));
+            require(ethAddressV == pkToAddressV, "Invalid signature of V over CTxP");
+        }
+
+        digest[1] = ParseBTCLib.getTxDigest(TxV, fundingTx_script, sighash); // the last argument is the sighash, which in this case is SIGHASH_ALL
+        address ethAddressP = ecrecover(digest[1], sig[0].v, bytes32(sig[0].r), bytes32(sig[0].s));
+        address pkToAddressP = address(bytes20(BytesLib.slice(abi.encodePacked(keccak256(pkProver_Uncompressed)), 12, 20)));
+        if (ethAddressP != pkToAddressP) {
+            ethAddressP = ecrecover(digest[1], sig[0].v+1, bytes32(sig[0].r), bytes32(sig[0].s));
+            require(ethAddressP == pkToAddressP, "Invalid signature of P over CTxV");
+        }
+
+        return true;
+
+    }
+
+
+    function checkSignatureEcrecover(bytes memory Tx, bytes memory fundingTx_script, bytes memory sighash, bytes memory pk) internal pure {
+
+        // check it has valid signature of V
+        ParseBTCLib.Signature memory sigV = ParseBTCLib.getSignature(Tx); 
+        bytes32 digest = ParseBTCLib.getTxDigest(Tx, fundingTx_script, sighash);
+
+        address ethAddress = ecrecover(digest, sigV.v, bytes32(sigV.r), bytes32(sigV.s));
+        address pkToAddress = address(bytes20(BytesLib.slice(abi.encodePacked(keccak256(pk)), 12, 20)));
+        if (ethAddress != pkToAddress) {
+            ethAddress = ecrecover(digest, sigV.v+1, bytes32(sigV.r), bytes32(sigV.s));
+            require(ethAddress == pkToAddress, "Invalid signature");
+        }
+    }
+
 }

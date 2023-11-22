@@ -20,6 +20,7 @@ describe("LNBridge", function(account) {
         //create identity P
         const entropyP = Buffer.from('ciaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociaociao', 'utf-8');
         const identityP = EthCrypto.createIdentity(entropyP); //create identity
+        //console.log(identityP);
         const publicKeyP = EthCrypto.publicKeyByPrivateKey(identityP.privateKey);
         const addressP = EthCrypto.publicKey.toAddress(publicKeyP);
         //create identity V
@@ -48,6 +49,19 @@ describe("LNBridge", function(account) {
         });
 
     });
+
+    /* describe("Test Signature with ecrecovery", function () {
+
+        it("Call checkSignatureNew, sig of P over CTV", async function () {
+
+            let tx = await LNBridge.checkSignatureEcrecover(testdata.CT_V_withPsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed);
+        }) 
+
+        it("Call checkSignatureNew, sig of V over CTP", async function () {
+
+            let tx = await LNBridge.checkSignatureEcrecover(testdata.CT_P_withVsig_Unlocked, testdata.fundingTx_LockingScript, testdata.sighash_all, testdata.pkVerifierUnprefixedUncompressed);
+        }) 
+    }); */
 
     describe("Test Setup", function () {
 
@@ -138,8 +152,8 @@ describe("LNBridge", function(account) {
         }) */
     }); 
  
-
-    describe("Test optimisticProof", function () {
+ 
+    describe("Test optimisticSubmitProof", function () {
 
         it("Optimistic submitProof ", async function () {
 
@@ -157,14 +171,14 @@ describe("LNBridge", function(account) {
             const digest = testdata.optimisticProofMessageDigest;
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, digest);
-            /* console.log("sig P");
-            console.log(signatureP);
-            console.log("sig V");
-            console.log(signatureV); */
+            //console.log("sig P");
+            //console.log(signatureP);
+            //console.log("sig V");
+            //console.log(signatureV); 
  
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            let txOptimisticProof = await LNBridge.optimisticProof(signatureP, signatureV, 12);
+            let txoptimisticSubmitProof = await LNBridge.optimisticSubmitProof(signatureP, signatureV, 12);
 
         }) 
 
@@ -184,15 +198,11 @@ describe("LNBridge", function(account) {
             const digest = testdata.optimisticProofMessageDigest;
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, digest);
-            /* console.log("sig P");
-            console.log(signatureP);
-            console.log("sig V");
-            console.log(signatureV); */
  
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            //let txOptimisticProof = await LNBridge.optProof(signatureP, signatureV, 12);
-            await expect(LNBridge.optimisticProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof optimistically verified", true);
+            //let txoptimisticSubmitProof = await LNBridge.optProof(signatureP, signatureV, 12);
+            await expect(LNBridge.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof optimistically verified", true);
 
         }) 
 
@@ -213,15 +223,11 @@ describe("LNBridge", function(account) {
             const wrongDigest = testdata.optimisticProofMessageDigestW;
             const signatureP = EthCrypto.sign(identityP.privateKey, digest);
             const signatureV = EthCrypto.sign(identityV.privateKey, wrongDigest);
-            /* console.log("sig P");
-            console.log(signatureP);
-            console.log("sig V");
-            console.log(signatureV); */
  
             let txSetup = await LNBridge.setup(testdata.fundingTxId, testdata.fundingTx_LockingScript, testdata.fundingTxIndex, testdata.sighash_all, testdata.pkProverUnprefixedUncompressed, testdata.pkVerifierUnprefixedUncompressed, testdata.timelock, testdata.RelTimelock, testdata.setupSigP, testdata.setupSigV);
 
-            //let txOptimisticProof = await LNBridge.optProof(signatureP, signatureV, 12);
-            await expect(LNBridge.optimisticProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof verification failed", false);
+            //let txoptimisticSubmitProof = await LNBridge.optProof(signatureP, signatureV, 12);
+            await expect(LNBridge.optimisticSubmitProof(signatureP, signatureV, 12)).to.emit(LNBridge, "stateEvent").withArgs("Proof verification failed", false);
 
 
         }) 
@@ -440,7 +446,7 @@ describe("LNBridge", function(account) {
 
             let txDispute = await LNBridge.dispute(testdata.CT_P_withVsig_Locked, testdata.CT_V_withPsig_Unlocked);
 
-            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withWrongVsig_Unlocked)).to.be.revertedWith("Invalid signature of V over CTxP");
+            await expect(LNBridge.resolveValidDispute(testdata.CT_P_withWrongVsig_Unlocked)).to.be.revertedWith("Invalid signature");
         })
 
 
@@ -528,7 +534,7 @@ describe("LNBridge", function(account) {
 
         // TODO: test balance distributions
 
-    });
+    }); 
  
  
 })

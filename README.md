@@ -1,4 +1,4 @@
-# Proof-of-Concept of the ALBA Smart Contract.
+# Proof-of-Concept of the ALBA Smart Contract
 
 ## The ALBA Protocol
 A Proof-of-Concept implementation of the ALBA protocol, connecting the Lightning Network (LN, a layer-2 on top of Bitcoin) to Ethereum. It allows to verify on Ethereum (or on any other EVM-based chain) the state of a LN channel, either the current state of the channel or an upcoming update thereof.
@@ -20,13 +20,11 @@ It also contains a python folder taken from [python-bitcoin-utils](https://githu
 This is a research prototype. We welcome anyone to contribute. File a bug report or submit feature requests through the issue tracker. If you want to contribute feel free to submit a pull request.
 
 ## Gas Cost Evaluation 
-![table](./images/table.png)
-
-The verification of Bitcoin signatures costs $2 \times 10^6$ gas.
+![table](./images/gasTableWithEcrecover.png)
 
 ## Tests 
 Tests for the contract
-![tests-contract](./images/tests-contract.png)
+![tests-contract](./images/tests.png)
 Tests for the library
 ![tests-library](./images/tests-library.png)
 
