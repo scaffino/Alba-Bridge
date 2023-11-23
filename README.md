@@ -24,7 +24,7 @@ This is a research prototype. We welcome anyone to contribute. File a bug report
 
 ## Tests 
 Tests for the contract
-![tests-contract](./images/tests.png)
+![tests-contract](./images/Alba-tests.png)
 Tests for the library
 ![tests-library](./images/tests-library.png)
 
