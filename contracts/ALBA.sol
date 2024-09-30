@@ -16,8 +16,7 @@ contract ALBA {
     event stateEvent(string label, bool status);
     event lockEvent(string label, address addr, uint amount);
 
-    // in non-toy implementations, use block.timestamp rather than this variable hardcoding the timestamp
-    uint256 block_timestamp = 1701002930;
+    uint256 block_timestamp= 1701002930;
 
     // define global variables for this contract instance (setup phase)
     struct ALBAParam {
@@ -112,7 +111,7 @@ contract ALBA {
                          bytes memory CT_V_unlocked) external {
 
         // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
-        if (block_timestamp < bridge.timelock && (state.coinsLocked == true && 
+        if (block_timestamp< bridge.timelock && (state.coinsLocked == true && 
                                                   state.setupDone == true && 
                                                   state.proofSubmitted == false && 
                                                   state.disputeOpened == false)) {
@@ -151,7 +150,7 @@ contract ALBA {
         bytes32 message = sha256(bytes.concat(BytesLib.uint256ToBytes(seqNumber), abi.encodePacked("proofSubmitted"), abi.encodePacked(true)));
 
         // check that P and V signed a message of the form (sn, proofSubmitted, true), where they acknowledge to distribute funds
-        if (block_timestamp < bridge.timelock && state.coinsLocked == true 
+        if (block_timestamp< bridge.timelock && state.coinsLocked == true 
                                               && state.setupDone == true 
                                               && state.proofSubmitted == false 
                                               && state.disputeOpened == false
@@ -174,7 +173,7 @@ contract ALBA {
                      bytes memory CT_V_unlocked) external {
 
         // check that current time is smaller than the timeout defined in Setup, and check proof has not yet been submitted, nor dispute raised
-        if (block_timestamp < bridge.timelock && (state.coinsLocked == true && 
+        if (block_timestamp< bridge.timelock && (state.coinsLocked == true && 
                                                   state.setupDone == true && 
                                                   state.proofSubmitted == false && 
                                                   state.disputeOpened == false)) {
@@ -214,7 +213,7 @@ contract ALBA {
     // resolve valid dispute raised by P: V submits the unlocked version of the transaction
     function resolveValidDispute(bytes memory CT_P_unlocked) external {
 
-        if (block_timestamp < (bridge.timelock + bridge.timelockDisp) && (state.coinsLocked == true && state.setupDone == true && state.proofSubmitted == false && state.disputeOpened == true)) {
+        if (block_timestamp< (bridge.timelock + bridge.timelockDisp) && (state.coinsLocked == true && state.setupDone == true && state.proofSubmitted == false && state.disputeOpened == true)) {
 
             // check transaction is not locked
             require(ParseBTCLib.getTimelock(CT_P_unlocked) == bytes4(0), "CTxP locked");
@@ -247,7 +246,7 @@ contract ALBA {
     // resolve invalid dispute raised by P: V provides the revocation secret for that proves P opened the dispute with an old state
     function resolveInvalidDispute(string memory revSecret) external {
 
-        if (block_timestamp < (bridge.timelock + bridge.timelockDisp) 
+        if (block_timestamp< (bridge.timelock + bridge.timelockDisp) 
             && (state.coinsLocked == true  && state.setupDone == true && state.proofSubmitted == false && state.disputeOpened == true)
             && paymentChan.rKey == sha256(abi.encodePacked(sha256(bytes(revSecret))))) {
 
