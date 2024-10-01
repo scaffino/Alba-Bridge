@@ -34,7 +34,7 @@ It also contains a python folder taken from [python-bitcoin-utils](https://githu
 This is a research prototype. We welcome anyone to contribute. File a bug report or submit feature requests through the issue tracker. If you want to contribute feel free to submit a pull request.
 
 ## Gas Cost Evaluation 
-![table](./images/gasTableWithEcrecover.png)
+![table](./images/gascost.png)
 
 ## Tests 
 Tests for the contract
