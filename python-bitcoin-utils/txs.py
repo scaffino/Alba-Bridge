@@ -20,7 +20,7 @@ def get_standard_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, val_l: in
         tx_out1 = TxOutput(int(val_l-fee/2), id_l.p2pkh) # output to l
 
     if locked:
-        tx = Transaction([tx_in], [tx_out0, tx_out1], "f0b78865")
+        tx = Transaction([tx_in], [tx_out0, tx_out1], "653fa19b")
     else:
         tx = Transaction([tx_in], [tx_out0, tx_out1])
 
@@ -58,7 +58,7 @@ def get_ALBA_ct(tx_in: TxInput, id_l: Id, id_r: Id, hashed_secret, opreturn_val,
         tx_out3 = TxOutput(0, op_return_script_id) 
 
         if locked:
-            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "f0b78865") # timelock is Sun Dec 03 2023 12:53:20 GMT+0000 -> I had to flip bytes: UNIX timestamp is 1701608000 -> 656C7A40 -> 407a6c65
+            tx = Transaction([tx_in], [tx_out0, tx_out1, tx_out2], "653fa19b") # timelock is Sept 09 2052 12:53:20 GMT+0000 -> I had to flip bytes: UNIX timestamp is 2611036005 -> 9BA13F65 -> 653fa19b
                                                                                # timelock Sat Oct 28 2023 22:00:00 GMT+0000 is 653D8460 in hex, but I need to flip bytes and it becomes: 60843d65
                                                                                # timelock Tue Dec 19 2023 23:00:00 GMT+0000 is 65822070 in hex, but I need to flip bytes and it becomes: 70208265
                                                                                # Sun Dec 24 2023 23:00:00 GMT+0000: 6588B7F0 -> f0b78865
