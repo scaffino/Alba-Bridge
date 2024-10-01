@@ -13,8 +13,5 @@ RUN npm install
 # Copy the rest of the application files into the container
 COPY . .
 
-# Expose a port (if you want to use Hardhat's local Ethereum network)
-EXPOSE 8545
-
 # Run the Hardhat network when the container starts (optional)
 CMD ["npx", "hardhat", "test"]
