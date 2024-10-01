@@ -1,0 +1,4 @@
+cache/
+artifacts/
+python-bitcoin-utils/__pycache__/
+node_modules/
