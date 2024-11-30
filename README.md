@@ -1,5 +1,7 @@
 # Proof-of-Concept of the ALBA Smart Contract
 
+<a href="https://doi.org/10.5281/zenodo.14249987"><img src="https://zenodo.org/badge/702946233.svg" alt="DOI"></a>
+
 *This code is for educational purposes only and it should not be used in production.*
 
 ## The ALBA Protocol
